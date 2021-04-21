@@ -89,10 +89,6 @@ kable(Casas[1:5,1:9]) #kable crea una tabla head(Casas) sirve para visualiar la 
 
 ```
 
-```{r}
-
-```
-
 
 
 ### División de los datos
@@ -333,7 +329,6 @@ boxplot(subset(error.test, select=-lm)); title(main="ML models", sub="Forecastin
 ```{r p1}
 #Escoja 10 variables continuas u categóricas (no con tantas categorías)
 
-colnames(Casas)
 
 #De esas 10, debe argumentar para al menos 3 de ellas porque podrían ser predictoras del precio de la casa. 
 #Construya una base de datos reducida con "Casas <- Casas[,c(x1,x2,x3,...x10)]" 
@@ -342,12 +337,11 @@ colnames(Casas)
 #Bedroom_AbvGr
 #"Paved_Drive"
 
-Casas1 <- Casas[c("Sale_Price","Lot_Area","Year_Built","Total_Bsmt_SF","Central_Air",
-                  "Gr_Liv_Area","Heating_QC", "Kitchen_AbvGr","TotRms_AbvGrd","Fireplaces")]
-
+Casas1 <- Casas[c("Sale_Price","Lot_Area","Year_Built","Total_Bsmt_SF",      
+                  "Kitchen_AbvGr","TotRms_AbvGrd","Fireplaces","Garage_Area","Pool_Area","Lot_Frontage")]
 #"Overall_Cond", "Foundation",
 
-View(Casas1)
+Casas1["Bath"] <- Casas$Full_Bath+ Casas$Half_Bath #Cantidad total de baños sobre el suelo
 
 ```
 
@@ -356,15 +350,54 @@ View(Casas1)
 ```{r p2}
 #Corra 1 modelo de regresión lineal y 2 modelos de Machine Learning vistos en la clase con la base de datos reducida,  para predecir el precio de las casas.
 
-Model1 <- lm(Sale_Price ~ Lot_Area+Overall_Cond+Year_Built+Total_Bsmt_SF+Central_Air+
-                  Foundation+Gr_Liv_Area+Heating_QC+Kitchen_AbvGr+TotRms_AbvGrd+Fireplaces, data=Casas1)
+Model1 <- lm(Sale_Price ~ Lot_Area+Year_Built+Total_Bsmt_SF+Kitchen_AbvGr+TotRms_AbvGrd+Fireplaces+Garage_Area+
+                    Pool_Area+Lot_Frontage, data=Casas1)
 # creamos la regresion
 summary(Model1) # vemos el output de la regresion
+```
 
-Model2 <- lm(Sale_Price ~ Lot_Area+Year_Built+Total_Bsmt_SF+Central_Air+
-                  Gr_Liv_Area+Heating_QC+Kitchen_AbvGr+TotRms_AbvGrd+Fireplaces, data=Casas1)
-# creamos la regresion
-summary(Model1) # vemos el output de la regresion
+
+```{r p2}
+# Construimos un vector que esta formado por números de filas aleatoriamente
+index1 <- sample(1:nrow(Casas1), size= nrow(Casas)*0.7)
+# Base de entrenamiento: del total de datos, tomamos las filas aletorizadas que tienen datos en index
+train1 <- Casas1[index, ]
+# Anteponiendo el "-" escogemos las filas en de la base que no están en index 
+test1  <- Casas1[-index, ]
+```
+
+
+```{r p2}
+### Ejecutar Random Forest
+train.randomf <- train(Sale_Price ~ Lot_Area + Year_Built +Total_Bsmt_SF +Kitchen_AbvGr +TotRms_AbvGrd +
+                         Fireplaces +Garage_Area+ Pool_Area+Lot_Frontage, 
+                       data=train1, method="rf",  
+                       trControl = trainControl("cv", number=10),
+                       preProcess = c("center","scale"),
+                       tuneLength = 5 
+)
+print(train1.randomf)
+ggplot(train1.randomf)
+test1.randomf  <- predict(train1.randomf, newdata=test1) 
+error.randomf <- test$Sale_Price-test1.randomf
+```
+
+
+```{r p2}
+### Ejecutar KNN
+train1.knn <- train(Sale_Price ~ Year_Built+Lot_Area + Year_Built +Total_Bsmt_SF +Kitchen_AbvGr +TotRms_AbvGrd +
+                         Fireplaces +Garage_Area+ Pool_Area+Lot_Frontage,  
+                   data=train, method="knn",  
+                   trControl = trainControl("cv", number=10),
+                   preProcess = c("center","scale"),
+                   tuneLength = 5 
+)
+
+print(train1.knn)
+ggplot(train.knn)
+test1.knn  <- predict(train1.knn, newdata=test) 
+error.knn <- test1$Sale_Price-test1.knn
+
 
 
 
@@ -372,40 +405,6 @@ summary(Model1) # vemos el output de la regresion
 ## Random Forest
 
 Random Forest se construye utilizando los principios fundamentales de los árboles de regresión y el bagging. Este úlimo, genera múltiples muestras de los datos y las agrega a los múltiples árboles de regresión. Pero al construir estos árboles de decisión se debe elegir una muestra aleatoria de predictores$X$ (llamados $mtry$).Esta agregación reduce la variación del procedimiento general y da como resultado un mejor rendimiento predictivo.
-
-```{r, message = FALSE, warning=FALSE}
-
-### Ejecutar Random Forest
-train.randomf <- train(Sale_Price ~ Year_Built+Gr_Liv_Area+Roof_Style+Heating_QC, 
-                       data=train, method="rf",  
-                       trControl = trainControl("cv", number=10),
-                       preProcess = c("center","scale"),
-                       tuneLength = 5 
-)
-print(train.randomf)
-ggplot(train.randomf)
-test.randomf  <- predict(train.randomf, newdata=test) 
-error.randomf <- test$Sale_Price-test.randomf
-```
-
-
-
-
-```{r, message = FALSE, warning=FALSE}
-
-### Ejecutar KNN
-train.knn <- train(Sale_Price ~ Year_Built+Gr_Liv_Area+Roof_Style+Heating_QC, 
-                   data=train, method="knn",  
-                   trControl = trainControl("cv", number=10),
-                   preProcess = c("center","scale"),
-                   tuneLength = 5 
-)
-
-print(train.knn)
-ggplot(train.knn)
-test.knn  <- predict(train.knn, newdata=test) 
-error.knn <- test$Sale_Price-test.knn
-```
 
 
 ### Pregunta 3
