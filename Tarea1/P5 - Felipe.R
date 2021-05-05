@@ -10,7 +10,7 @@ data <- data %>%
   mutate(Satisfecho = ifelse(Rating >= 7,1,0))
 
 data$hora <- as.POSIXct(data$Time, format="%H:%M")
-data$Date2 <- as.Date(data$Date, format='%m/%d/%Y')
+data$Date <- as.Date(data$Date, format='%m/%d/%Y')
 data$day <- weekdays(data$Date2)
 #La cantidad de satisfechos es independiente de la hora ni del medio de pago
 ggplot(data, aes(x=Total, fill = factor(Satisfecho)))+
