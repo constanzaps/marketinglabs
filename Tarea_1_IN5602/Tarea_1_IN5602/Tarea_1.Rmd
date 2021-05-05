@@ -98,7 +98,7 @@ library(ggrepel)
 library(caret)#Para validar y entrenar los modelos
 library(knitr) 
 library(glmnet) #Para modelo Lasso
-
+library(MLmetrics)
 #path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
 #path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
 path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
@@ -360,6 +360,7 @@ xtrain <- subset(train, select = -c(gross.margin.percentage, Rating, City, Tax.5
 # Se quitan variables correlacionadas
 test  <- ventas[-index, ]
 ```
+Para comenzar esta sección, se crea un *train set* y un *test set*, con una proporción de 70%:30%.
 En el set de variables *xtrain* se eliminaron algunas variables que estaban altamente correlacionadas con otras, y la ganancia por producto ya que es constante, y no servirá como variable predictora. También se elimina la variable a predecir, *Rating*.
 
 
@@ -367,18 +368,31 @@ En el set de variables *xtrain* se eliminaron algunas variables que estaban alta
 
 
 ```{r P2_a}
-train.lm <- train(form = Rating ~ Branch + Customer.type + Gender + Product.line +
-                     Payment + Quantity + Total + Time + Weekday + 
-                    Product.line*Branch + Weekday*Product.line + Gender*Payment +
-                    Gender*Product.line ,#Fórmula
+train.lm1 <- train(form = Rating ~ Branch + Gender + Product.line 
+                   + Payment + Gender*Payment + Customer.type*Product.line ,#Fórmula
   data = train, #Datos
   method = "lm", #Algoritmo 
   trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
 )
 
-test.lm  <- predict(train.lm , newdata=test) #Vector de datos predichos. Recibe una base de datos (newdata) y un modelo entrenado (train.lm)
-error.lm <- test$Rating-test.lm #Calcular los errores de predicción (dato real - dato estimado)
-error.lm
+test.lm1  <- predict(train.lm , newdata=test) #Vector de datos predichos. Recibe una base de datos (newdata) y un modelo entrenado (train.lm)
+#error.lm <- test$Rating-test.lm #Calcular los errores de predicción (dato real - dato estimado)
+#error.lm
+
+train.lm2 <- train(form = Rating ~ Branch + Product.line + Payment + Quantity 
+                   + Total + Time + Weekday + Product.line*Total + Product.line*Weekday ,#Fórmula
+  data = train, #Datos
+  method = "lm", #Algoritmo 
+  trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
+)
+
+test.lm2  <- predict(train.lm , newdata=test) #Vector de datos predichos. Recibe una base de datos (newdata)
+
+Mape_lm1 <- MAPE(test$Rating, test.lm1)
+Mse_lm1 <- MSE(test$Rating, test.lm1)
+Mape_lm2 <- MAPE(test$Rating, test.lm2)
+Mse_lm2 <- MSE(test$Rating, test.lm2)
+summary(train.lm2)
 ```
 
 
@@ -386,8 +400,10 @@ error.lm
 
 ```{r P2_b}
 #Regresión autoselección
-xtrain <- subset(train, select = -c(gross.margin.percentage, Rating, City, Tax.5., cogs, gross.income))
-LassoModel <- glmnet(xtrain, train$Rating, alpha=1, lambda=0.03)
+#train$Gender_product <- train$Product.line*train$Gender
+#head(train)
+
+LassoModel <- glmnet(xtrain, train$Rating, alpha=1, lambda=0.04)
 coef(LassoModel)
 ```
 
