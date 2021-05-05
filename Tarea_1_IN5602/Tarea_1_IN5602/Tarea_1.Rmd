@@ -97,9 +97,11 @@ library(ggpubr)
 library(ggrepel)
 library(caret)#Para validar y entrenar los modelos
 library(knitr) 
+library(glmnet) #Para modelo Lasso
 
 #path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
-path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
+#path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
+path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
 setwd(path)
 ventas <- read.csv("supermarket_sales.csv")
 print(paste('Las dimensiones de los datos son:', dim(ventas)[1], 'filas y', dim(ventas)[2], 'columnas.'))
@@ -380,7 +382,9 @@ error.lm
 
 ```{r P2_b}
 #Regresión autoselección
-
+xtrain <- subset(train, select = -c(gross.margin.percentage, Rating))
+LassoModel <- glmnet(xtrain, train$Rating, alpha=1, lambda=0.01)
+coef(LassoModel)
 ```
 
 #### Pregunta 3
