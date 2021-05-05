@@ -86,7 +86,8 @@ library(knitr)
 ```{r lectura base}
 Casas <- read.csv("Casas.csv")
 kable(Casas[1:5,1:9]) #kable crea una tabla head(Casas) sirve para visualiar la data
-
+help(read.csv)
+dir()
 ```
 
 
