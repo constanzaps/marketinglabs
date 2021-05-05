@@ -88,6 +88,7 @@ Escribe acá todos los comandos que necesitas ejecutar antes de abordar las preg
 #Exploración de datos
 library(tidyr)
 library(gridExtra)
+library(grid)
 library(ggplot2)
 library(GGally)
 library(psych)
@@ -205,6 +206,9 @@ geom_bar(width = 1, stat = "identity", alpha = x)+coord_polar("y", start=0)+ geo
         axis.ticks = element_blank(),
         panel.grid  = element_blank())
 
+ggplot(ventas, aes(x=Branch))+geom_density(position = 'fill')
+
+
 # para Gender
 contar<- data.frame(table(charac["Gender"]))
 names(contar)[1]<-"Gender"
@@ -274,7 +278,7 @@ g3 <- ggplot(ventas) +
   xlab("Satisfacción según precio unitario") 
 typeof(ventas$Time)
 g4 <- ggplot(ventas) +
-  aes(x=Rating, y=hora) +
+  aes(x=Rating, y=Time) +
   geom_point(size = 1, alpha = .4) + 
   #geom_smooth(method = "lm", se = FALSE) + #Agregamos un ajuste lineal sobre los puntos.
   #scale_y_log10() + # "scale_y_log10" transforma el eje "y" a logaritmo.
