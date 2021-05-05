@@ -366,7 +366,7 @@ test  <- ventas[-index, ]
 
 ```{r P2_a}
 train.lm <- train(form = Rating ~ Branch + Customer.type+Gender +Product.line+Product.line*Branch +
-                     Payment +Quantity + Total+hora ,#Fórmula
+                     Payment +Quantity + Total + Time ,#Fórmula
   data = train, #Datos
   method = "lm", #Algoritmo 
   trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
@@ -382,7 +382,7 @@ error.lm
 
 ```{r P2_b}
 #Regresión autoselección
-xtrain <- subset(train, select = -c(gross.margin.percentage, Rating))
+xtrain <- subset(train, select = -c(gross.margin.percentage, Rating, City, Tax.5., cogs, gross.income))
 LassoModel <- glmnet(xtrain, train$Rating, alpha=1, lambda=0.01)
 coef(LassoModel)
 ```
