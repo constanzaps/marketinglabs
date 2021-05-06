@@ -391,7 +391,8 @@ Para que este modelo calibre bien deben usarse 2 variables explicativas.
 ```{r p2rf}
 ### Ejecutar Random Forest
 train.randomf <- train(Rating ~ Branch + Gender + Product.line 
-                   + Payment + Gender*Payment + Customer.type*Product.line ,
+                   + Payment + Gender*Payment +Customer.type+ Customer.type*Product.line + Total + Time
+                   + Product.line*Total + Product.line*Weekday + Branch*Gender,
                    data=train, method="rf",  
                        trControl = trainControl("cv", number=5),
                        preProcess = c("center","scale"),
@@ -406,12 +407,13 @@ error.randomf
 ```
 
 #### Modelo KNN
-Para esto se obtiene k óptimo igual a 13
+Para esto se obtiene k óptimo igual a 11
 ```{r p2knn}
 ### Ejecutar KNN
 
 train.knn <- train(Rating ~ Branch + Gender + Product.line 
-                   + Payment + Gender*Payment + Customer.type*Product.line ,
+                   + Payment +Customer.type+ Gender*Payment + Customer.type*Product.line + Total + Time
+                   + Product.line*Total + Product.line*Weekday+ Branch*Gender,
                    data=train, method="knn",  
                    trControl = trainControl("cv", number=5),
                    preProcess = c("center","scale"),
