@@ -99,6 +99,7 @@ library(caret)#Para validar y entrenar los modelos
 library(knitr) 
 library(glmnet) #Para modelo Lasso
 library(MLmetrics)
+library(inspectdf)
 #path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
 #path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
 path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
@@ -108,6 +109,12 @@ print(paste('Las dimensiones de los datos son:', dim(ventas)[1], 'filas y', dim(
 print(paste('El dataframe posee:',sum(is.na(ventas)), 'datos vacíos.'))
 str(ventas)
 ```
+
+
+
+
+
+
 Transformamos las variables a un formato correspondiente al tipo de dato que representan:
 ```{r}
 #Transformamos la variable "género" a binaria
@@ -137,7 +144,14 @@ ventas$Weekday = factor(ventas$Weekday, levels=c('lunes','martes','miércoles','
 str(ventas)
 ```
 
-
+Luego se puede observar de que forma quedó compuesta la base de datos:
+```{r, fig.width=4, fig.height=4}
+tipo <- inspect_types(ventas)
+show_plot(tipo, 
+    col_palette = 2, 
+    text_labels = TRUE, 
+    label_color = "black")
+```
 
 ## Desarrollo
 
@@ -152,14 +166,21 @@ summary(ventas)
 
 Las variables categoricas tienen una distribución similiar entre sus distintas categorías, por lo que no hay un desbalance entre clases. Sobre las variables númericas, a simple vista los percentiles parecen indicar que no outliers de gran magnitud en las variables. Para confirmar este supuesto se realiza un histograma para cada variable numérica:
 
+
 ```{r}
-nums <- ventas[ ,unlist(lapply(ventas, is.numeric))] #variables numéricas
-multi.hist(nums) #Histograma múltiple
+numericas <- inspect_num(ventas)
+show_plot(numericas, 
+    col_palette = 4, 
+    text_labels = TRUE, 
+    label_color = "black")
 ```
+
+
 Se puede observar que *gross.margin.percentaje* parece ser una variable constante, lo cual se confirma al tener una desviación estandar igual a 0. Con esto se puede omitir la variable en el análisis de regresiones ya que no servirá para predecir ninguna otra variable.
 
 Se puede visualizar la correlación de las demás variables numéricas:
 ```{r}
+nums <- ventas[ ,unlist(lapply(ventas, is.numeric))] #variables numéricas
 nums$gross.margin.percentage <- NULL #Quitamos la variable constante
 ggcorr(nums,  label = TRUE, label_color = "black")
 ```
@@ -168,91 +189,15 @@ Se observa que *Rating* tiene correlación 0 con todas las demás variables, y v
 Respecto a las variables tipo *character*, se puede obtener una muestra aleatoria para observar de que trata cada una. En particular notando que *Product.line*, *City*, *Payment*, *Gender*, *Branch* y *Customer.type* son formas claras de categorizar clientes.
 
 Viendo las variables tipo texto:
-```{r} 
-charac <- ventas[,unlist(lapply(ventas, is.character))] #variables tipo texto
-grid.arrange(ggplot(charac, aes(x=Product.line))+geom_histogram(),
-             nrow = 1, ncol=1)
+```{r, fig.width=11, fig.height=4}
+character <- inspect_cat(ventas)
+show_plot(character, 
+    col_palette = 2, 
+    text_labels = TRUE, 
+    label_color = "black")
 ```
-
-
-```{r}
-x=0.6
-m=3
-# para Product.line
-contar<- data.frame(table(charac["Product.line"]))
-names(contar)[1]<-"Product.line"
-contar$per <- contar$Freq/sum(contar$Freq)
-bp<- ggplot(contar, aes(x="", y=per, fill=Product.line))+
-geom_bar(width = 1, stat = "identity", alpha = x)+coord_polar("y", start=0)+ geom_label_repel(aes(label = per), size=m, show.legend = F, nudge_x = 1) + guides(fill = guide_legend(title = "Product.line"))+
-  theme(axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid  = element_blank())
-
-# para City
-contar<- data.frame(table(charac["City"]))
-names(contar)[1]<-"City"
-contar$per <- contar$Freq/sum(contar$Freq)
-bp1<- ggplot(contar, aes(x="", y=per, fill=City))+
-geom_bar(width = 1, stat = "identity", alpha = x)+coord_polar("y", start=0)+ geom_label_repel(aes(label = per), size=m, show.legend = F, nudge_x = 1) + guides(fill = guide_legend(title = "City"))+
-  theme(axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid  = element_blank())
-
-# para Payment
-contar<- data.frame(table(charac["Payment"]))
-names(contar)[1]<-"Payment"
-contar$per <- contar$Freq/sum(contar$Freq)
-bp2<- ggplot(contar, aes(x="", y=per, fill=Payment))+
-geom_bar(width = 1, stat = "identity", alpha = x)+coord_polar("y", start=0)+ geom_label_repel(aes(label = per), size=m, show.legend = F, nudge_x = 1) + guides(fill = guide_legend(title = "Payment"))+
-  theme(axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid  = element_blank())
-
-ggplot(ventas, aes(x=Branch))+geom_density(position = 'fill')
-
-
-# para Gender
-contar<- data.frame(table(charac["Gender"]))
-names(contar)[1]<-"Gender"
-contar$per <- contar$Freq/sum(contar$Freq)
-bp3<- ggplot(contar, aes(x="", y=per, fill=Gender))+
-geom_bar(width = 1, stat = "identity", alpha = x)+coord_polar("y", start=0)+ geom_label_repel(aes(label = per), size=m, show.legend = F, nudge_x = 1) + guides(fill = guide_legend(title = "Gender"))+
-  theme(axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid  = element_blank())
-
-# para Branch
-contar<- data.frame(table(charac["Branch"]))
-names(contar)[1]<-"Branch"
-contar$per <- contar$Freq/sum(contar$Freq)
-bp4<- ggplot(contar, aes(x="", y=per, fill=Branch))+
-geom_bar(width = 1, stat = "identity", alpha = x)+coord_polar("y", start=0)+ geom_label_repel(aes(label = per), size=m, show.legend = F, nudge_x = 1) + guides(fill = guide_legend(title = "Branch"))+
-  theme(axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid  = element_blank())
-
-# para Customer.type
-contar<- data.frame(table(charac["Customer.type"]))
-names(contar)[1]<-"Customer.type"
-contar$per <- contar$Freq/sum(contar$Freq)
-bp5<- ggplot(contar, aes(x="", y=per, fill=Customer.type))+
-geom_bar(width = 1, stat = "identity", alpha = x)+coord_polar("y", start=0)+ geom_label_repel(aes(label = per), size=m, show.legend = F, nudge_x = 1) + guides(fill = guide_legend(title = "Customer.type"))+
-  theme(axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid  = element_blank())
-
-ggarrange(bp, bp1, bp2, bp3, bp4, bp5, 
-          labels = c("Product.line", "City",
-                    "Payment","Gender","Branch",
-                    "Customer.type"),
-          font.label = list(size = 10, color = "black"),
-          ncol = 2, nrow = 3)
-
-```
-
 
 Con ello se puede observar que todas estas categorías están repartidas con igual porcentaje dentro de la base de datos. Otro dato interesante es que cada marca se encuentra en una ciudad distinta, por lo cual bastará con estudiar una de las dos variables.
-
 
 
 Viendo como se comportan las variables en función de la satisfacción, se puede ver los siguientes gráficos respecto a las variables numéricas, donde se puede ver que la satisfacción se comporta de manera equitativa para todos los valores de la variable númerica.
@@ -291,8 +236,6 @@ grid.arrange(g1, g2,g3, g4,nrow = 2) #une las  gráficas.
 
 Podemos visualizar su comportamiento por días horas y semanas.
 ```{r, fig.width=10, fig.height=2}
-
-
 g2 <- ggplot(ventas, aes(x=Rating, fill=factor(day))) + geom_density(alpha=0.4)+ facet_grid(.~day)+theme(legend.position = "none")
 g2
 ```
@@ -412,12 +355,42 @@ coef(LassoModel)
 (1.0 puntos)Use al menos dos de los modelos de aprendizaje de máquinas que vimos en clases (MARS, kNN, regression tree, random forest) para generar un pronóstico de Rating de un cliente al realizar una compra y compare la capacidad de estos modelos con respecto a los de regresión lineal.
 
 
-
-
-```{r P3}
-#Modelo de aprendizaje de máquinas
-
+#### Modelo Random Forest
+```{r p2rf}
+### Ejecutar Random Forest
+train.randomf <- train(Rating ~ Branch + Gender + Product.line 
+                   + Payment + Gender*Payment + Customer.type*Product.line ,
+                   data=train, method="rf",  
+                       trControl = trainControl("cv", number=5),
+                       preProcess = c("center","scale"),
+                       tuneLength = 5 
+)
+print(train.randomf)
+ggplot(train.randomf)
+test.randomf  <- predict(train.randomf, newdata=test) 
+error.randomf <- test$Rating-test.randomf
+error.randomf
 ```
+
+#### Modelo KNN
+```{r p2knn}
+### Ejecutar KNN
+
+train.knn <- train(Rating ~ Branch + Gender + Product.line 
+                   + Payment + Gender*Payment + Customer.type*Product.line ,
+                   data=train, method="knn",  
+                   trControl = trainControl("cv", number=5),
+                   preProcess = c("center","scale"),
+                   tuneLength = 5 
+)
+#+Unit.price sin esto llega a 1.74
+print(train.knn)
+ggplot(train.knn)
+test.knn  <- predict(train.knn, newdata=test) 
+error.knn <- test$Rating-test.knn
+error.knn
+```
+
 
 #### Pregunta 4
 
