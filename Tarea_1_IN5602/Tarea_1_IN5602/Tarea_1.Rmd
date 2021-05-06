@@ -438,8 +438,8 @@ error.test <- data.frame( knn=error.knn, rf=error.randomf)#agregar lm=error.lm,
 
 summary(abs(error.test))
 summary(error.test)
-boxplot(abs(subset(error.test, select=-lm))); title(main="ML models", sub="Forecasting Absolute Errors")
-boxplot(subset(error.test, select=-lm)); title(main="ML models", sub="Forecasting Errors")
+#boxplot(abs(subset(error.test, select=-lm))); title(main="ML models", sub="Forecasting Absolute Errors")
+#boxplot(subset(error.test, select=-lm)); title(main="ML models", sub="Forecasting Errors")
 
 ```
 #### Pregunta 5
