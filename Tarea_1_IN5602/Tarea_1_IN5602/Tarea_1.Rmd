@@ -338,8 +338,8 @@ En el set de variables *xtrain* se eliminaron algunas variables que estaban alta
 
 
 ```{r P2_a}
-train.lm1 <- train(form = Rating ~ Branch + Gender + Product.line 
-                   + Payment + Gender*Payment + Customer.type*Product.line ,#Fórmula
+train.lm1 <- train(form = Rating ~ City + Gender + Product.line + Payment
+                   + Product.line*Payment + City*Gender,#Fórmula
   data = train, #Datos
   method = "lm", #Algoritmo 
   trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
@@ -360,11 +360,12 @@ train.lm2 <- train(form = Rating ~ City + Product.line + Total + Time
 test.lm2  <- predict(train.lm1 , newdata=test) #Vector de datos predichos. Recibe una base de datos (newdata)
 
 Mape_lm1 <- MAPE(test$Rating, test.lm1)
-Mse_lm1 <- MSE(test$Rating, test.lm1)
+RMse_lm1 <- RMSE(test$Rating, test.lm1)
 Mape_lm2 <- MAPE(test$Rating, test.lm2)
-Mse_lm2 <- MSE(test$Rating, test.lm2)
+RMse_lm2 <- RMSE(test$Rating, test.lm2)
 summary(train.lm1)
-#+ Product.line*Total + Product.line*Weekday
+Mape_lm1
+RMse_lm1
 ```
 
 
@@ -375,7 +376,7 @@ summary(train.lm1)
 #train$Gender_product <- train$Product.line*train$Gender
 #head(train)
 
-LassoModel <- glmnet(xtrain, ytrain, alpha=1, lambda=0.05)
+LassoModel <- glmnet(xtrain, ytrain, alpha=1, lambda=0.03)
 coef(LassoModel)
 ```
 
