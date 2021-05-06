@@ -102,8 +102,8 @@ library(glmnet) #Para modelo Lasso
 library(MLmetrics)
 library(inspectdf)
 #path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
-path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
-#path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
+#path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
+path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
 #setwd(path)
 ventas <- read.csv("supermarket_sales.csv")
 print(paste('Las dimensiones de los datos son:', dim(ventas)[1], 'filas y', dim(ventas)[2], 'columnas.'))
@@ -349,8 +349,9 @@ test.lm1  <- predict(train.lm1 , newdata=test) #Vector de datos predichos. Recib
 #error.lm <- test$Rating-test.lm #Calcular los errores de predicción (dato real - dato estimado)
 #error.lm
 
-train.lm2 <- train(form = Rating ~ Branch + Product.line + Payment + Quantity 
-                   + Total + Time + Weekday + Product.line*Total + Product.line*Weekday ,#Fórmula
+train.lm2 <- train(form = Rating ~ City + Product.line + Total + Time
+                   + Product.line*Total + Product.line*Weekday
+                   ,#Fórmula
   data = train, #Datos
   method = "lm", #Algoritmo 
   trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
@@ -362,7 +363,8 @@ Mape_lm1 <- MAPE(test$Rating, test.lm1)
 Mse_lm1 <- MSE(test$Rating, test.lm1)
 Mape_lm2 <- MAPE(test$Rating, test.lm2)
 Mse_lm2 <- MSE(test$Rating, test.lm2)
-summary(train.lm2)
+summary(train.lm1)
+#+ Product.line*Total + Product.line*Weekday
 ```
 
 
@@ -373,7 +375,7 @@ summary(train.lm2)
 #train$Gender_product <- train$Product.line*train$Gender
 #head(train)
 
-LassoModel <- glmnet(xtrain, ytrain, alpha=1, lambda=0.04)
+LassoModel <- glmnet(xtrain, ytrain, alpha=1, lambda=0.05)
 coef(LassoModel)
 ```
 
