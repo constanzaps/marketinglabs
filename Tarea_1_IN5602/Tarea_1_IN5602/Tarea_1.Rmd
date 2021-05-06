@@ -199,6 +199,7 @@ Con ello se puede observar que la mayoría de estas categorías están repartida
 Se puede ver en más detalle las diferencias en días en la siguiente tabla, que explica que la menor frecuencia que tiene un día específico del mes es 14 y la máxima 44.
 ```{r}
 frecuencia_dias <-data.frame(table(ventas$dia))
+names(frecuencia_dias)[1]<-"dia"
 summary(frecuencia_dias)
 ```
 
