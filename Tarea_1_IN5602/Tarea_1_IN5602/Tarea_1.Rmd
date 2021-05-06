@@ -297,9 +297,8 @@ Al controlar por pares de variables también se pueden distinguir algunas difere
 Como se mencionó anteriormente, hay variables que tienen una correlación perfecta o que no tienen varianza alguna. La presencia de estos factores puede afectar de manera significativa el desarrolllo de las preguntas siguientes, por lo que serán eliminadas.
 
 ```{r}
-ventas <- subset(ventas, select = -c(gross.margin.percentage, gross.income, Tax.5.,
-                                     cogs,Date_time,ventas, dia))
-str(ventas)
+ventas <- subset(ventas, select = -c(gross.margin.percentage, gross.income, Tax.5.,cogs,Date_time,Date, dia))
+head(ventas)
 ```
 
 
@@ -384,6 +383,8 @@ coef(LassoModel)
 
 
 #### Modelo Random Forest
+PArámetro principla, lo que va ajustando, es cuantas variables explictivas le debo pasar al modelo para que se calibre bien
+Para que este modelo calibre bien deben usarse 2 variables explicativas.
 ```{r p2rf}
 ### Ejecutar Random Forest
 train.randomf <- train(Rating ~ Branch + Gender + Product.line 
@@ -394,6 +395,7 @@ train.randomf <- train(Rating ~ Branch + Gender + Product.line
                        tuneLength = 5 
 )
 print(train.randomf)
+
 ggplot(train.randomf)
 test.randomf  <- predict(train.randomf, newdata=test) 
 error.randomf <- test$Rating-test.randomf
@@ -401,6 +403,7 @@ error.randomf
 ```
 
 #### Modelo KNN
+Para esto se obtiene k óptimo igual a 13
 ```{r p2knn}
 ### Ejecutar KNN
 
@@ -424,11 +427,21 @@ error.knn
 
 (0.5 puntos) Compare las fortalezas y debilidades de los modelos anteriores, evalúe de acuerdo a algunas de las métricas que vimos en clases y discuta qué modelo recomendaría usar.
 
+
 ```{r P4}
 #Comparación modelos y recomendación
 
-```
 
+#Empezamos comparando los modelos
+ventas.test <- data.frame(  knn=test.knn,  rf=test.randomf, ventas=ytest)# agregar lm=test.lm,
+error.test <- data.frame( knn=error.knn, rf=error.randomf)#agregar lm=error.lm, 
+
+summary(abs(error.test))
+summary(error.test)
+boxplot(abs(subset(error.test, select=-lm))); title(main="ML models", sub="Forecasting Absolute Errors")
+boxplot(subset(error.test, select=-lm)); title(main="ML models", sub="Forecasting Errors")
+
+```
 #### Pregunta 5
 
 (2.0 puntos) En esta parte, se compararán los grados de satisfacción entre las distintas salas de la cadena de supermercados. Para lo siguiente usted deberá clasificar cada evaluación de la calidad de servicios de acuerdo a si el cliente está o no satisfecho. Para eso puede considerar que un cliente está satisfecho si tiene un Rating mayor o igual a los 7 puntos. Con esto:
