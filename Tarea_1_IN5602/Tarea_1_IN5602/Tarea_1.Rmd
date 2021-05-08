@@ -141,15 +141,6 @@ ventas$dia<-format(as.Date(ventas$Date,format="%Y-%m-%d"), format = "%d")
 str(ventas)
 ```
 
-Luego se puede observar de que forma quedó compuesta la base de datos:
-```{r, fig.width=4, fig.height=4}
-tipo <- inspect_types(ventas)
-show_plot(tipo, 
-    col_palette = 2, 
-    text_labels = TRUE, 
-    label_color = "black")
-```
-
 ## Desarrollo
 
 Documenta acá el desarrollo de tu tarea por pregunta.
@@ -185,7 +176,7 @@ Se observa que *Rating* tiene correlación 0 con todas las demás variables, y v
 
 Respecto a las variables tipo *character*, se puede obtener una muestra aleatoria para observar de que trata cada una. En particular notando que *Product.line*, *City*, *Payment*, *Gender*, *Branch* y *Customer.type* son formas claras de categorizar clientes.
 
-Viendo las variables tipo texto:
+Viendo las variables tipo no numérica:
 ```{r, fig.width=11, fig.height=4}
 character <- inspect_cat(ventas)
 show_plot(character, 
@@ -205,20 +196,22 @@ summary(frecuencia_dias)
 
 
 Viendo como se comportan las variables en función de la satisfacción, se puede ver los siguientes gráficos respecto a las variables numéricas, donde se puede ver que la satisfacción se comporta de manera equitativa para todos los valores de la variable númerica.
-```{r}
+```{r, fig.width=10, fig.height=6}
 g1 <- ggplot(ventas) +
   aes(x=Rating, y=Total) +
-  geom_point(size=1, alpha=0.4) + #"size" aumenta el tamaño de los puntos, "alpha" da transparencia
-  geom_smooth(se=FALSE) + #Agregamos un ajuste no lineal sobre los puntos. "se" integra errores estándares
-  xlab("Satisfacción según el total de la compra")
+  geom_point(size=1, alpha=0.4, colour = "darkblue")+
+  geom_smooth(se=FALSE, colour='red') + #Agregamos un ajuste no lineal sobre los puntos.
+  scale_y_log10() +
+  xlab("Satisfacción")+
+  ylab("log(Total)")+
+  ggtitle("log(Total) en relación a la satisfacción")
 
-
-g2 <- ggplot(ventas) +
+ g2 <- ggplot(ventas) +
   aes(x=Rating, y=Quantity) +
   geom_point(size = 1, alpha = .4) + 
   geom_smooth(method = "lm", se = FALSE) + #Agregamos un ajuste lineal sobre los puntos.
   scale_y_log10() + # "scale_y_log10" transforma el eje "y" a logaritmo.
-  xlab("Satisfacción según cantidad comprada") 
+  xlab("Cantidad de productos comprados \n según Satisfacción") 
 
 g3 <- ggplot(ventas) +
   aes(x=Rating, y=Unit.price) +
@@ -247,7 +240,7 @@ g2
 g1 <- ggplot(ventas, aes(x=Rating, fill=factor(Weekday))) + geom_density(alpha=0.4)+ facet_grid(Product.line~Weekday)+theme(legend.position = "none")
 g1
 ```
-```{r, fig.width=13, fig.height=3}
+```{r, fig.width=13, fig.height=5}
 g1 <-ggplot(ventas, aes(x=Rating, fill=factor(dia))) + geom_density(alpha=0.4) + facet_grid(. ~ dia) +theme(legend.position = "none", axis.text.x = element_blank())
 g2 <-ggplot(ventas, aes(x=Total, fill=factor(dia))) + geom_density(alpha=0.4) + facet_grid(. ~ dia) +theme(legend.position = "none", axis.text.x = element_blank())
 
