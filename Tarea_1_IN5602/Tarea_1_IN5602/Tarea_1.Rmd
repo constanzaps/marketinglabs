@@ -240,6 +240,7 @@ g2
 g1 <- ggplot(ventas, aes(x=Rating, fill=factor(Weekday))) + geom_density(alpha=0.4)+ facet_grid(Product.line~Weekday)+theme(legend.position = "none")
 g1
 ```
+
 ```{r, fig.width=13, fig.height=5}
 g1 <-ggplot(ventas, aes(x=Rating, fill=factor(dia))) + geom_density(alpha=0.4) + facet_grid(. ~ dia) +theme(legend.position = "none", axis.text.x = element_blank())
 g2 <-ggplot(ventas, aes(x=Total, fill=factor(dia))) + geom_density(alpha=0.4) + facet_grid(. ~ dia) +theme(legend.position = "none", axis.text.x = element_blank())
@@ -257,6 +258,15 @@ g3 <- ggplot(ventas, aes(x=Rating, fill=factor(Gender))) + geom_density(alpha=0.
 
 grid.arrange(g1, g2, g3,nrow = 3) #une las  gráficas. 
 ```
+
+
+
+```{r, fig.width=10, fig.height=15}
+g2 <-ggplot(ventas, aes(x=Rating, fill=factor(Payment))) + geom_density(alpha=0.4) + facet_grid(dia~ Payment) +theme(legend.position = "none")
+g2
+```
+
+
 
 Cantidad de ventas por sucursal
 ```{r, fig.width=5, fig.height=2}
@@ -290,7 +300,7 @@ Al controlar por pares de variables también se pueden distinguir algunas difere
 Como se mencionó anteriormente, hay variables que tienen una correlación perfecta o que no tienen varianza alguna. La presencia de estos factores puede afectar de manera significativa el desarrolllo de las preguntas siguientes, por lo que serán eliminadas.
 
 ```{r}
-ventas <- subset(ventas, select = -c(gross.margin.percentage, gross.income, Tax.5.,cogs,Date_time,Date, dia))
+ventas <- subset(ventas, select = -c(gross.margin.percentage, gross.income, Tax.5.,cogs,Date_time,Date))
 head(ventas)
 ```
 
@@ -387,7 +397,8 @@ Para que este modelo calibre bien deben usarse 2 variables explicativas.
 ### Ejecutar Random Forest
 train.randomf <- train(Rating ~ Branch + Gender + Product.line 
                    + Payment +Customer.type+ Gender*Payment + Customer.type*Product.line + Total + Time
-                   + Product.line*Total + Product.line*Weekday+ Branch*Gender+ Product.line*Payment,
+                   + Product.line*Total + Product.line*Weekday+ Branch*Gender+ Product.line*Payment +
+                     dia*Payment,
                    data=train, method="rf",  
                        trControl = trainControl("cv", number=5),
                        preProcess = c("center","scale"),
@@ -408,7 +419,8 @@ Para esto se obtiene k óptimo igual a 11
 
 train.knn <- train(Rating ~ Branch + Gender + Product.line 
                    + Payment +Customer.type+ Gender*Payment + Customer.type*Product.line + Total + Time
-                   + Product.line*Total + Product.line*Weekday+ Branch*Gender, #+ Product.line*Payment si agreggo esto son 13
+                   + Product.line*Total + Product.line*Weekday+ Branch*Gender+
+                     dia*Payment, #+ Product.line*Payment si agreggo esto son 13
                    data=train, method="knn",  
                    trControl = trainControl("cv", number=5),
                    preProcess = c("center","scale"),
