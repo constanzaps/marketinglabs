@@ -101,6 +101,7 @@ library(knitr)
 library(glmnet) #Para modelo Lasso
 library(MLmetrics)
 library(inspectdf)
+set.seed(1234)
 #path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
 #path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
 path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
@@ -315,6 +316,7 @@ head(ventas)
 (2.0 puntos) Usando los aprendizajes derivados de la exploración de datos, use un enfoque de regresión lineal para examinar cuantitativamente qué factores determinan la satisfacción al momento de realizar una compra.
 
 ```{r}
+
 # Construimos un vector que esta formado por números de filas aleatoriamente
 index <- sample(1:nrow(ventas), size= nrow(ventas)*0.7)
 
