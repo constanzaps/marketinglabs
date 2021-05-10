@@ -252,6 +252,8 @@ grid.arrange(g1, g2,nrow = 2) #une las  gráficas.
 
 Luego se puede realizar un análisis de las variables categóricas, donde se observa que sí existen leves diferencias en las distribuciones de rating, notandose un poco más en las variables  *Product.line* y según género.
 
+
+
 ```{r, fig.width=10, fig.height=5}
 g2 <-ggplot(ventas, aes(x=Rating, fill=factor(Payment))) + geom_density(alpha=0.4) + facet_grid(. ~ Payment) +theme(legend.position = "none")
 g1 <- ggplot(ventas, aes(x=Rating, fill=factor(Product.line))) + geom_density(alpha=0.4)+ facet_grid(.~Product.line)+theme(legend.position = "none")
@@ -275,6 +277,8 @@ g <- ggplot(ventas, aes(y=Total, fill=factor(Branch))) + geom_boxplot(alpha=0.4)
 g
 ```
 
+
+
 Se puede observar que las ventas son parecidas en las tiendas (o branch), sin embargo la C vende un poco más.
 
 ```{r, fig.width=11, fig.height=3}
@@ -283,13 +287,27 @@ g
 ```
 En este se puede observar que la tienda C es la que vende más comida,y la tienda asociada a la marca B vende pocos accesorios.
 
+```{r, fig.width=6, fig.height=4}
+g <- ggplot(ventas, aes(y=Rating, fill=factor(City))) + geom_boxplot(alpha=0.4)+ facet_grid(Gender~City)
+g
+```
+Con esta interacción se puede observar que el rating cambia al realizar la interacción ciudad y género.
+
+
 ```{r, fig.width=10, fig.height=5}
 
 g1 <- ggplot(ventas, aes(x=Rating, fill=factor(Gender))) + geom_density(alpha=0.4)+ facet_grid(.~Payment)
-g2 <- ggplot(ventas, aes(x=Rating, fill=factor(Product.line))) + geom_density(alpha=0.2)+ facet_grid(Branch~Product.line)+theme(legend.position = "none")
+g2 <- ggplot(ventas, aes(x=Rating, fill=factor(Product.line))) + geom_density(alpha=0.2)+ facet_grid(City~Product.line)+theme(legend.position = "none")
 #png(width=800, height=360)
 grid.arrange(g1, g2, nrow = 2) #une las  gráficas. 
 ``` 
+
+
+```{r, fig.width=8, fig.height=4}
+g3 <- ggplot(ventas, aes(x=Rating, fill=factor(Product.line))) + geom_density(alpha=0.4)+
+  facet_wrap(Customer.type~Product.line, ncol = 3)
+g3
+```
 
 ```{r, fig.width=8, fig.height=4}
 g3 <- ggplot(ventas, aes(x=Rating, fill=factor(Gender))) + geom_density(alpha=0.4)+
@@ -391,21 +409,36 @@ coef(LassoModel)
 
 (1.0 puntos)Use al menos dos de los modelos de aprendizaje de máquinas que vimos en clases (MARS, kNN, regression tree, random forest) para generar un pronóstico de Rating de un cliente al realizar una compra y compare la capacidad de estos modelos con respecto a los de regresión lineal.
 
+dia
+product line
+
+
+
+total*branch
+gender*payment
+gender*product line
+productline*city
+city*gender
+porbar product line x city
 
 #### Modelo Random Forest
-PArámetro principla, lo que va ajustando, es cuantas variables explictivas le debo pasar al modelo para que se calibre bien
+
+En base a lo observado en la P2, se escogen las variables City, Total, Product.line, Payment, Gender y la interacción de City con Gender
+
+
 Para que este modelo calibre bien deben usarse 2 variables explicativas.
 ```{r p2rf}
 ### Ejecutar Random Forest
-train.randomf <- train(Rating ~ Branch + Gender + Product.line 
-                   + Payment +Customer.type+ Gender*Payment + Customer.type*Product.line + Total + Time
-                   + Product.line*Total + Product.line*Weekday+ Branch*Gender+ Product.line*Payment +
-                     dia*Payment,
+train.randomf <- train(Rating ~ City + Total + Time + Gender + Product.line 
+                   + Payment +Customer.type+ Gender*Payment + City*Gender,
                    data=train, method="rf",  
                        trControl = trainControl("cv", number=5),
                        preProcess = c("center","scale"),
                        tuneLength = 5 
 )
+
+
+
 print(train.randomf)
 
 ggplot(train.randomf)
@@ -419,15 +452,15 @@ Para esto se obtiene k óptimo igual a 11
 ```{r p2knn}
 ### Ejecutar KNN
 
-train.knn <- train(Rating ~ Branch + Gender + Product.line 
-                   + Payment +Customer.type+ Gender*Payment + Customer.type*Product.line + Total + Time
-                   + Product.line*Total + Product.line*Weekday+ Branch*Gender+
-                     dia*Payment, #+ Product.line*Payment si agreggo esto son 13
+train.knn <- train(Rating ~ City + Total + Time + Gender + Product.line 
+                   + Payment +Customer.type+ Gender*Payment + City*Gender, #+ Product.line*Payment si agreggo esto son 13
                    data=train, method="knn",  
-                   trControl = trainControl("cv", number=5),
+                   trControl = trainControl("cv", number=15),
                    preProcess = c("center","scale"),
                    tuneLength = 5 
 )
+#variables que empeoran
+#+ Customer.type*Product.line
 #+Unit.price sin esto llega a 1.74
 print(train.knn)
 ggplot(train.knn)
@@ -453,7 +486,7 @@ error.test <- data.frame( knn=error.knn, rf=error.randomf)#agregar lm=error.lm,
 summary(abs(error.test))
 summary(error.test)
 #boxplot(abs(subset(error.test, select=-lm))); title(main="ML models", sub="Forecasting Absolute Errors")
-#boxplot(subset(error.test, select=-lm)); title(main="ML models", sub="Forecasting Errors")
+boxplot(subset(error.test)); title(main="ML models", sub="Forecasting Errors")#, select=-lm
 
 ```
 #### Pregunta 5
