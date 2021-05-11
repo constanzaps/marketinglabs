@@ -388,6 +388,9 @@ summary(train.lm2)
 Mape_lm1
 RMse_lm1
 
+
+
+
 ```
 
 
@@ -407,11 +410,9 @@ coef(LassoModel)
 
 (1.0 puntos)Use al menos dos de los modelos de aprendizaje de máquinas que vimos en clases (MARS, kNN, regression tree, random forest) para generar un pronóstico de Rating de un cliente al realizar una compra y compare la capacidad de estos modelos con respecto a los de regresión lineal.
 
-#### Modelo Random Forest
-
 En base a lo observado en la P2, se escogen las variables City, Total, Product.line, Payment, Gender. Además se escogen las interacciones que dieron resultados más interesantes en la P1, es decir City y Gender, Payment y Gender, y finalmente Product line y Total que dieron resultados significactivos en la P2.
 
-En base a este conjunto de variables se realizarán dos modelos de aprendizaje de máquinas: Modelo Random Forest y Modelo KNN.
+En base a este conjunto de variables se realizarán dos modelos de aprendizaje de máquinas: Modelo Random Forest y Modelo KNN. Luego también se utilizará el modelo de regresión lineal para comparar la capacidad que tienen los diferentes tipos de modelo.
 
 #### Modelo Random Forest:
 ```{r p2rf}
@@ -456,6 +457,40 @@ test.knn  <- predict(train.knn, newdata=test)
 error.knn <- test$Rating-test.knn
 ```
 Al correr este modelo se obtiene que el resultado que entrega menos errores en la predicción es un modelo con 13 variables.
+
+
+#### Regresión lineal
+```{r p2regrl}
+### Ejecutar KNN
+
+train.lm <- train(Rating ~ City + Total + Time + Gender + Product.line 
+                   + Payment +Customer.type+ Gender*Payment + City*Gender+Product.line*Total, #+ Product.line*Payment si agreggo esto son 13
+                   data=train, method="lm",  
+                   trControl = trainControl("cv", number=15),
+                   preProcess = c("center","scale"),
+                   tuneLength = 5 
+)
+
+print(train.lm)
+test.lm  <- predict(train.lm, newdata=test) 
+error.lm <- test$Rating-test.lm
+```
+
+Para comparar la capacidad de estos modelos frente a la regresión lineal debemos recordar que estos modelos son muy útiles cuando el foco del problema está en el pronóticos de relaciones complejas y no lineales con grandes cantidades de datos, en cambio las regresiones lineales son muy útiles para entender la relación de las variables con los componentes de la regresión. 
+
+En base a ese razonamiento, en base al enfoque teórico sería mucho más útil realizar una regresión lineal que un modelo de Machine Learning, con el objetivo de entender como afectan las variables al Rating. Sin embargo al ser los de Machine Learning modelos mucho más complejos que pueden observar relaciones no lineales, estos suelen dar mejores resultados en capacidad predictiva.
+
+Para comprobar esto se pueden comparar los errores de los modelos ML versus la regresión lineal, observandose los siguientes resultados:
+
+```{r}
+ventas.test <- data.frame(  knn=test.knn,  rf=test.randomf,lm=test.lm, ventas=ytest)
+error.test <- data.frame( knn=error.knn, rf=error.randomf,lm=error.lm )
+
+summary(abs(error.test))
+```
+
+Se ve que los errores para este modelo son menores para los modelos de Machine Learning, lo cual concuerda con la intuición de que estos tienen mejor capacidad predictiva, y servirían mejor para el objetivo de predecir el rating.
+
 
 #### Pregunta 4
 
