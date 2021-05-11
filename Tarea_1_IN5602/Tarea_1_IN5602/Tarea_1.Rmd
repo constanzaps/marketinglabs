@@ -241,13 +241,14 @@ g2
 g1 <- ggplot(ventas, aes(x=Rating, fill=factor(Weekday))) + geom_density(alpha=0.4)+ facet_grid(Product.line~Weekday)+theme(legend.position = "none")
 g1
 ```
-
+FALLECER
 ```{r, fig.width=13, fig.height=5}
 g1 <-ggplot(ventas, aes(x=Rating, fill=factor(dia))) + geom_density(alpha=0.4) + facet_grid(. ~ dia) +theme(legend.position = "none", axis.text.x = element_blank())
 g2 <-ggplot(ventas, aes(x=Total, fill=factor(dia))) + geom_density(alpha=0.4) + facet_grid(. ~ dia) +theme(legend.position = "none", axis.text.x = element_blank())
 
 grid.arrange(g1, g2,nrow = 2) #une las  gráficas. 
 ```
+FALLECER
 
 
 Luego se puede realizar un análisis de las variables categóricas, donde se observa que sí existen leves diferencias en las distribuciones de rating, notandose un poco más en las variables  *Product.line* y según género.
@@ -512,6 +513,7 @@ Se ve que los errores para este modelo son menores para los modelos de Machine L
 
 Primero se compararán los errores que entregan ambos modelos al probarse en el set de testeo.
 ```{r P4}
+#RSME
 ventas.test <- data.frame(  knn=test.knn,  rf=test.randomf, ventas=ytest)# agregar lm=test.lm,
 error.test <- data.frame( knn=error.knn, rf=error.randomf)#agregar lm=error.lm, 
 
