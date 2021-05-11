@@ -350,6 +350,8 @@ test  <- ventas[-index, ]
 xtest <- subset(test, select = -c(Rating))
 
 ytest <- test$Rating
+
+
 ```
 Para comenzar esta sección, se crea un *train set* y un *test set*, con una proporción de 70%:30%.
 En el set de variables *xtrain* se eliminaron algunas variables que estaban altamente correlacionadas con otras, y la ganancia por producto ya que es constante, y no servirá como variable predictora. También se elimina la variable a predecir, *Rating*.
@@ -366,8 +368,9 @@ En el set de variables *xtrain* se eliminaron algunas variables que estaban alta
 #                   method = "lm", #Algoritmo 
 #                   trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
 #)
-lm1 <- lm(Rating ~ City + Gender + Product.line + Payment + Product.line*Payment
-          + City*Product.line, data=ventas) #regresión lineal 1 con datos
+lm1 <- lm(Rating ~ City*Gender*Weekday , data=ventas) #regresión lineal 1 con datos
+
+#+ Product.line*Payment + City*Product.line,
 
 #test.lm1  <- predict(train.lm1 , newdata=test) #Vector de datos predichos. Recibe una base de datos (newdata) y un modelo entrenado (train.lm)
 #error.lm <- test$Rating-test.lm #Calcular los errores de predicción (dato real - dato estimado)
@@ -394,8 +397,7 @@ summary(lm1)
 #                 trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
 #)
 
-lm2 <- lm(Rating ~ City + Product.line + Payment + Time + Product.line*Total
-          + Product.line*Weekday, data=ventas) #regresión lineal 2 con datos
+lm2 <- lm(Rating ~ Gender*Total*Weekday, data=ventas) #regresión lineal 2 con datos
 #test.lm2  <- predict(train.lm1 , newdata=test) #Vector de datos predichos. Recibe una base de datos (newdata)
 
 #Mape_lm2 <- MAPE(test$Rating, test.lm2)
