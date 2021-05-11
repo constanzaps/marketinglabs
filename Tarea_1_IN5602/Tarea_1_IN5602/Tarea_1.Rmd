@@ -358,51 +358,63 @@ En el set de variables *xtrain* se eliminaron algunas variables que estaban alta
 **a)** Proponga al menos dos especificaciones alternativas para el objetivo propuesto. Justifique muy brevemente por que las variables que está incluyendo en el modelo tienen sentido desde el punto de vista del negocio. Justifique además el nivel de agregación escogido y los índices considerados en el modelo.
 
 
-```{r P2_a}
-train.lm1 <- train(form = Rating ~ City + Gender + Product.line + Payment
-                   + Product.line*Payment + City*Gender,#Fórmula
-                   data = train, #Datos
-                   method = "lm", #Algoritmo 
-                   trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
-)
+```{r P2_a.1}
 
-test.lm1  <- predict(train.lm1 , newdata=test) #Vector de datos predichos. Recibe una base de datos (newdata) y un modelo entrenado (train.lm)
+#train.lm1 <- train(form = Rating ~ City + Gender + Product.line + Payment
+#                   + Product.line*Payment + City*Gender,#Fórmula
+#                   data = train, #Datos
+#                   method = "lm", #Algoritmo 
+#                   trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
+#)
+lm1 <- lm(Rating ~ City + Gender + Product.line + Payment + Product.line*Payment
+          + City*Product.line, data=ventas) #regresión lineal 1 con datos
+
+#test.lm1  <- predict(train.lm1 , newdata=test) #Vector de datos predichos. Recibe una base de datos (newdata) y un modelo entrenado (train.lm)
 #error.lm <- test$Rating-test.lm #Calcular los errores de predicción (dato real - dato estimado)
 #error.lm
 
-train.lm2 <- train(form = Rating ~ City + Product.line + Total + Time
-                   + Product.line*Total + Product.line*Weekday
-                   ,#Fórmula
-                   data = train, #Datos
-                   method = "lm", #Algoritmo 
-                   trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
-)
+#Mape_lm1 <- MAPE(test$Rating, test.lm1)
+#RMse_lm1 <- RMSE(test$Rating, test.lm1)
 
-test.lm2  <- predict(train.lm1 , newdata=test) #Vector de datos predichos. Recibe una base de datos (newdata)
-
-Mape_lm1 <- MAPE(test$Rating, test.lm1)
-RMse_lm1 <- RMSE(test$Rating, test.lm1)
-Mape_lm2 <- MAPE(test$Rating, test.lm2)
-RMse_lm2 <- RMSE(test$Rating, test.lm2)
-summary(train.lm2)
-Mape_lm1
-RMse_lm1
-
-
+summary(lm1)
+#Mape_lm1
+#RMse_lm1
 
 
 ```
 
 
+```{r P2_a.1}
+
+#train.lm2 <- train(form = Rating ~ City + Product.line + Payment + Time
+#                   + Product.line*Total + Product.line*Weekday
+#                   ,#Fórmula
+#                   data = train, #Datos
+#                  method = "lm", #Algoritmo 
+#                 trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
+#)
+
+lm2 <- lm(Rating ~ City + Product.line + Payment + Time + Product.line*Total
+          + Product.line*Weekday, data=ventas) #regresión lineal 2 con datos
+#test.lm2  <- predict(train.lm1 , newdata=test) #Vector de datos predichos. Recibe una base de datos (newdata)
+
+#Mape_lm2 <- MAPE(test$Rating, test.lm2)
+#RMse_lm2 <- RMSE(test$Rating, test.lm2)
+
+summary(lm2)
+#Mape_lm2
+#RMse_lm2
+
+```
+
 **b)** Sobre los dos modelos planteados en la parte anterior, aplique un método de selección automática de variables y compare respecto a los resultados anteriores.
 
 ```{r P2_b}
-#Regresión autoselección
-#train$Gender_product <- train$Product.line*train$Gender
-#head(train)
 
-LassoModel <- glmnet(xtrain, ytrain, alpha=1, lambda=0.05)
-coef(LassoModel)
+ventas_sin_rating <- subset(ventas, select = -c(Rating)) #data sin Rating
+
+LassoModel <- glmnet(ventas_sin_rating, ventas$Rating, alpha=1, lambda=0.04) #modelo Lasso de autoselección
+coef(LassoModel) #impresión de coeficientes
 
 ```
 
