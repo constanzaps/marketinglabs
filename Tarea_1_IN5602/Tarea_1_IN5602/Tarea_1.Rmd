@@ -218,6 +218,12 @@ figure
 
 Los histogramas de las variables *cogs, gross.income, Tax 5% y Total* son muy similares entre si, por lo cual puede existir un problema de correlación.
 
+
+JAJAJAJAJAJAJAJAJJAJAJA
+AJAJJA
+JaJAJA
+JAJAJA
+
 A través de un diagrama de correlaciones se puede visualizar la relación existente entre las variables numéricas:
 ```{r, fig.width=11, fig.height=4}
 nums <- ventas[ ,unlist(lapply(ventas, is.numeric))] #variables numéricas
