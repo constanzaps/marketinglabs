@@ -7,7 +7,7 @@
 
 ---
 title:  'Tarea 1 - Semestre Otoño 2021'
-author: 'Nombres'
+author: 'Felipe Jorquera D., Constanza Peña S., Matías Salinas M.'
 date:   '05 de mayo de 2021'
 output:
   html_document:
@@ -84,33 +84,44 @@ Escribe acá todos los comandos que necesitas ejecutar antes de abordar las preg
 
 #### Preparación Tarea
 
-```{r P}
+Importamos las librerías a utilizar:
+
+```{r Preparación, message = FALSE}
 #Exploración de datos
-library(tidyr) #Para manejar bases de datos
+library(tidyr)
 library(gridExtra)
 library(lubridate)
 library(grid)
-library(ggplot2) #Para graficos
+library(ggplot2)
 library(GGally)
 library(psych)
 library(corrplot)
 library(ggpubr)
 library(ggrepel)
-library(caret)#Para validar y entrenar los modelos
+library(caret)
 library(knitr) 
-library(glmnet) #Para modelo Lasso
+library(glmnet)
 library(MLmetrics)
 library(inspectdf)
 set.seed(1234)
+
+```
+
+```{r, include = FALSE}
 #path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
-#path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
-path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
+path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
+#path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
 #setwd(path)
+```
+
+Se importa la base de datos
+```{r}
 ventas <- read.csv("supermarket_sales.csv")
 print(paste('Las dimensiones de los datos son:', dim(ventas)[1], 'filas y', dim(ventas)[2], 'columnas.'))
 print(paste('El dataframe posee:',sum(is.na(ventas)), 'datos vacíos.'))
 str(ventas)
 ```
+
 Transformamos las variables a un formato correspondiente al tipo de dato que representan:
 ```{r}
 #Transformamos la variable "género" a binaria
@@ -149,41 +160,118 @@ Documenta acá el desarrollo de tu tarea por pregunta.
 #### Pregunta 1
 
 (0 puntos) Explore los datos para entender la satisfacción de los clientes y qué variables podrían ayudar a predecir cuando un cliente está más satisfecho.
+
+Se analiza la composición de la base de datos con la función __summary__:
 ```{r P1}
 summary(ventas)
 ```
 
-Las variables categoricas tienen una distribución similiar entre sus distintos valores, por lo que no hay un desbalance entre clases. Sobre las variables númericas, a simple vista los percentiles parecen indicar que no outliers de gran magnitud en las variables. Para confirmar este supuesto se realiza un histograma para cada variable numérica:
+Las variables categoricas tienen una distribución similiar entre sus distintos valores, por lo que no hay un gran desbalance entre clases. Además, dado que la variable *gross.margin.percentage* no posee varianza alguna (su mínimo y máximo son iguales), se conlcuye que no aporta información al problema y debe ser eliminada. Sobre las otras variables númericas, a simple vista los percentiles parecen indicar que no hay outliers de gran magnitud en las variables. Para confirmar este supuesto se realiza un histograma para cada variable numérica:
 
+```{r, fig.width=11, fig.height=8, dpi=300, echo=FALSE}
+cogs <- ggplot(ventas, aes(x=cogs, fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'cogs', y = 'Cantidad', title = 'cogs: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
 
-```{r}
-numericas <- inspect_num(ventas)
-show_plot(numericas, 
-    col_palette = 4, 
-    text_labels = TRUE, 
-    label_color = "black")
+gross.income <- ggplot(ventas, aes(x=gross.income, fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'Gross Income', y = 'Count', title = 'Gross Income: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+hour_plot <- ggplot(ventas, aes(x=Hour_num, fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'Hora del Día', y = 'Count', title = 'Hour_num: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+quan_plot <- ggplot(ventas, aes(x=Quantity, fill=..count..))+
+  geom_histogram(bins= 10)+
+  labs(x = 'Número de productos comprados', y = 'Count', title = 'Quantity: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))+
+  scale_x_continuous(breaks=1:10)
+
+rating_plot <- ggplot(ventas, aes(x=Rating, fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'Rating', y = 'Count', title = 'Rating: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+tax5_plot <- ggplot(ventas, aes(x=Tax.5., fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'Tax 5%', y = 'Count', title = 'Tax 5%: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+total_plot <- ggplot(ventas, aes(x=Total, fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'Total de compra', y = 'Count', title = 'Total: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+up_plot <- ggplot(ventas, aes(x=Unit.price, fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'Precio unitario', y = 'Count', title = 'Unit price: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+figure <- ggarrange(cogs, hour_plot, gross.income, quan_plot, tax5_plot, rating_plot,
+                    total_plot, up_plot,
+                    ncol = 2, nrow = 4)
+figure
 ```
 
+Los histogramas de las variables *cogs, gross.income, Tax 5% y Total* son muy similares entre si, por lo cual puede existir un problema de correlación.
 
-Se puede observar que *gross.margin.percentaje* parece ser una variable constante, lo cual se confirma al tener una desviación estandar igual a 0. Con esto se puede omitir la variable en el análisis ya que no servirá para predecir ninguna otra variable.
-
-Se puede visualizar la correlación de las demás variables numéricas:
-```{r}
+A través de un diagrama de correlaciones se puede visualizar la relación existente entre las variables numéricas:
+```{r, fig.width=11, fig.height=4}
 nums <- ventas[ ,unlist(lapply(ventas, is.numeric))] #variables numéricas
 nums$gross.margin.percentage <- NULL #Quitamos la variable constante
-ggcorr(nums,  label = TRUE, label_color = "black")
+ggcorr(nums,  label = TRUE, label_color = "black", )
 ```
-Se observa que *Rating* tiene correlación 0 con todas las demás variables, y varias variables tienen correlación 1, esto debido a que las variables "Tax 5%", "cogs" y "gross income" son un porcentaje de la variable "Total". Dicha correlación se tendrá en cuenta al correr los modelos de las preguntas siguientes.
+Se observa que *Rating* tiene correlación 0 con todas las demás variables, y varias variables tienen correlación 1, esto debido a que las variables *Tax 5%, cogs y gross income* son un porcentaje de la variable *Total*. Dicha correlación se tendrá en cuenta al correr los modelos de las preguntas siguientes.
 
 Respecto a las variables tipo *character*, se puede obtener una muestra aleatoria para observar de que trata cada una. En particular notando que *Product.line*, *City*, *Payment*, *Gender*, *Branch* y *Customer.type* son formas claras de categorizar clientes.
 
 Viendo las variables tipo no numérica:
-```{r, fig.width=11, fig.height=4}
-character <- inspect_cat(ventas)
-show_plot(character, 
-    col_palette = 2, 
-    text_labels = TRUE, 
-    label_color = "black")
+```{r, fig.width=14, fig.height=8, dpi=300, echo=FALSE}
+
+branch_plot <- ggplot(ventas, aes(x=Branch, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Supermercado', y = 'Count', title = 'Branch: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+city_plot <- ggplot(ventas, aes(x=City, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Ciudad', y = 'Count', title = 'City: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+ctype_plot <- ggplot(ventas, aes(x=Customer.type, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Tipo de consumidor', y = 'Count', title = 'Customer type: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+gender_plot <- ggplot(ventas, aes(x=Gender, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Género', y = 'Count', title = 'Gender: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+pay_plot <- ggplot(ventas, aes(x=Payment, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Medio de pago', y = 'Count', title = 'Payment: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+prod_plot <- ggplot(ventas, aes(y=Product.line, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Categoría del producto', y = 'Count', title = 'Product line: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+day_plot <- ggplot(ventas, aes(x=Weekday, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Día de la semana', y = 'Count', title = 'Weekday: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+figure <- ggarrange(prod_plot, ggarrange(branch_plot, city_plot, ctype_plot,
+                                         gender_plot, pay_plot, day_plot, nrow=3, ncol=2),
+                    ncol = 2)
+figure
+
 ```
 
 Con ello se puede observar que la mayoría de estas categorías están repartidas con igual porcentaje dentro de la base de datos, siendo la excepción las fechas, donde existen algunos días más frecuentes que otros. Otro dato interesante es que cada marca se encuentra en una ciudad distinta, por lo cual bastará con estudiar solo una de las dos variables.
@@ -388,7 +476,7 @@ summary(lm1)
 ```
 
 
-```{r P2_a.1}
+```{r P2_a.2}
 
 #train.lm2 <- train(form = Rating ~ City + Product.line + Payment + Time
 #                   + Product.line*Total + Product.line*Weekday
@@ -521,17 +609,17 @@ summary(abs(error.test))
 ```
 
 
-```{r P4}
+```{r P4.1}
 summary(error.test)
 ```
 
 
-```{r P4}
+```{r P4.5}
 boxplot(abs(subset(error.test))); title(main="ML models", sub="Forecasting Absolute Errors")
 ```
 
 
-```{r P4}
+```{r P4.3}
 boxplot(subset(error.test)); title(main="ML models", sub="Forecasting Errors")#, select=-lm
 ```
 Se puede observar que los errores para ambos modelos entregan resultados muy similares, sin embargo se puede verificar que el error medio absoluto (MAE) para el modelo KNN es de 1.59461,  levemente mayor que es del Random Forest, que es de 1.58426. No solo eso, sino que el rango de errores del KNN también es claramente mayor, tal cual se observa en los boxplot.
