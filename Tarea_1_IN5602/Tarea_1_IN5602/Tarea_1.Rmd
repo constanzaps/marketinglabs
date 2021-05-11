@@ -454,53 +454,24 @@ En el set de variables *xtrain* se eliminaron algunas variables que estaban alta
 
 **a)** Proponga al menos dos especificaciones alternativas para el objetivo propuesto. Justifique muy brevemente por que las variables que está incluyendo en el modelo tienen sentido desde el punto de vista del negocio. Justifique además el nivel de agregación escogido y los índices considerados en el modelo.
 
+**R.:** En una primera regresión se propone un modelo de regresión lineal de interacción triple entre las variables City, Gender y Weekday. Es esperable pensar que el rating asignado por los clientes varíe en cada ciudad, por distintas razones incluso más allá de motivos relacionados a la tienda misma. Y de igual forma tiene sentido que los rating sean distintos dependiendo del día de la semana en que se tome la muestra, esto último respaldado por el EDA realizado. Finalmente, en el EDA se encontraron diferencias con respecto al género, lo cual se busca estudiar más a detalle.
+
 
 ```{r P2_a.1}
 
-#train.lm1 <- train(form = Rating ~ City + Gender + Product.line + Payment
-#                   + Product.line*Payment + City*Gender,#Fórmula
-#                   data = train, #Datos
-#                   method = "lm", #Algoritmo 
-#                   trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
-#)
+
 lm1 <- lm(Rating ~ City*Gender*Weekday , data=ventas) #regresión lineal 1 con datos
 
-#+ Product.line*Payment + City*Product.line,
-
-#test.lm1  <- predict(train.lm1 , newdata=test) #Vector de datos predichos. Recibe una base de datos (newdata) y un modelo entrenado (train.lm)
-#error.lm <- test$Rating-test.lm #Calcular los errores de predicción (dato real - dato estimado)
-#error.lm
-
-#Mape_lm1 <- MAPE(test$Rating, test.lm1)
-#RMse_lm1 <- RMSE(test$Rating, test.lm1)
-
 summary(lm1)
-#Mape_lm1
-#RMse_lm1
-
 
 ```
 
 
 ```{r P2_a.2}
 
-#train.lm2 <- train(form = Rating ~ City + Product.line + Payment + Time
-#                   + Product.line*Total + Product.line*Weekday
-#                   ,#Fórmula
-#                   data = train, #Datos
-#                  method = "lm", #Algoritmo 
-#                 trControl = trainControl(method = "cv", number = 10) #Method = cross validation, number=10 (k-fold) 
-#)
-
 lm2 <- lm(Rating ~ Gender*Total*Weekday, data=ventas) #regresión lineal 2 con datos
-#test.lm2  <- predict(train.lm1 , newdata=test) #Vector de datos predichos. Recibe una base de datos (newdata)
-
-#Mape_lm2 <- MAPE(test$Rating, test.lm2)
-#RMse_lm2 <- RMSE(test$Rating, test.lm2)
 
 summary(lm2)
-#Mape_lm2
-#RMse_lm2
 
 ```
 
