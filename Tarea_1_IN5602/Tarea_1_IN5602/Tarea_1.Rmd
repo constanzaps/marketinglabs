@@ -264,10 +264,7 @@ grid.arrange(g1, g2, g3,nrow = 3) #une las  gráficas.
 
 
 
-```{r, fig.width=10, fig.height=15}
-g2 <-ggplot(ventas, aes(x=Rating, fill=factor(Payment))) + geom_density(alpha=0.4) + facet_grid(dia~ Payment) +theme(legend.position = "none")
-g2
-```
+
 
 
 
@@ -291,7 +288,8 @@ En este se puede observar que la tienda C es la que vende más comida,y la tiend
 g <- ggplot(ventas, aes(y=Rating, fill=factor(City))) + geom_boxplot(alpha=0.4)+ facet_grid(Gender~City)
 g
 ```
-Con esta interacción se puede observar que el rating cambia al realizar la interacción ciudad y género.
+Con esta interacción se puede observar que el rating cambia al realizar la interacción ciudad y género, lo cual implica resultados bastante distintos para rating.
+
 
 
 ```{r, fig.width=10, fig.height=5}
@@ -409,30 +407,19 @@ coef(LassoModel)
 
 (1.0 puntos)Use al menos dos de los modelos de aprendizaje de máquinas que vimos en clases (MARS, kNN, regression tree, random forest) para generar un pronóstico de Rating de un cliente al realizar una compra y compare la capacidad de estos modelos con respecto a los de regresión lineal.
 
-dia
-product line
-
-
-
-total*branch
-gender*payment
-gender*product line
-productline*city
-city*gender
-porbar product line x city
-
 #### Modelo Random Forest
 
-En base a lo observado en la P2, se escogen las variables City, Total, Product.line, Payment, Gender y la interacción de City con Gender
+En base a lo observado en la P2, se escogen las variables City, Total, Product.line, Payment, Gender. Además se escogen las interacciones que dieron resultados más interesantes en la P1, es decir City y Gender, Payment y Gender, y finalmente Product line y Total que dieron resultados significactivos en la P2.
 
+En base a este conjunto de variables se realizarán dos modelos de aprendizaje de máquinas: Modelo Random Forest y Modelo KNN.
 
-Para que este modelo calibre bien deben usarse 2 variables explicativas.
+#### Modelo Random Forest:
 ```{r p2rf}
 ### Ejecutar Random Forest
 train.randomf <- train(Rating ~ City + Total + Time + Gender + Product.line 
-                   + Payment +Customer.type+ Gender*Payment + City*Gender,
+                   + Payment +Customer.type+ Gender*Payment + City*Gender+Product.line*Total,
                    data=train, method="rf",  
-                       trControl = trainControl("cv", number=5),
+                       trControl = trainControl("cv", number=15),
                        preProcess = c("center","scale"),
                        tuneLength = 5 
 )
@@ -444,8 +431,9 @@ print(train.randomf)
 ggplot(train.randomf)
 test.randomf  <- predict(train.randomf, newdata=test) 
 error.randomf <- test$Rating-test.randomf
-error.randomf
 ```
+Al correr este modelo se obtiene que el resultado que entrega menos errores en la predicción es un modelo con 2 variables.
+
 
 #### Modelo KNN
 Para esto se obtiene k óptimo igual a 11
@@ -453,7 +441,7 @@ Para esto se obtiene k óptimo igual a 11
 ### Ejecutar KNN
 
 train.knn <- train(Rating ~ City + Total + Time + Gender + Product.line 
-                   + Payment +Customer.type+ Gender*Payment + City*Gender, #+ Product.line*Payment si agreggo esto son 13
+                   + Payment +Customer.type+ Gender*Payment + City*Gender+Product.line*Total, #+ Product.line*Payment si agreggo esto son 13
                    data=train, method="knn",  
                    trControl = trainControl("cv", number=15),
                    preProcess = c("center","scale"),
@@ -466,29 +454,40 @@ print(train.knn)
 ggplot(train.knn)
 test.knn  <- predict(train.knn, newdata=test) 
 error.knn <- test$Rating-test.knn
-error.knn
 ```
-
+Al correr este modelo se obtiene que el resultado que entrega menos errores en la predicción es un modelo con 13 variables.
 
 #### Pregunta 4
 
 (0.5 puntos) Compare las fortalezas y debilidades de los modelos anteriores, evalúe de acuerdo a algunas de las métricas que vimos en clases y discuta qué modelo recomendaría usar.
 
-
+Primero se compararán los errores que entregan ambos modelos al probarse en el set de testeo.
 ```{r P4}
-#Comparación modelos y recomendación
-
-
-#Empezamos comparando los modelos
 ventas.test <- data.frame(  knn=test.knn,  rf=test.randomf, ventas=ytest)# agregar lm=test.lm,
 error.test <- data.frame( knn=error.knn, rf=error.randomf)#agregar lm=error.lm, 
 
 summary(abs(error.test))
-summary(error.test)
-#boxplot(abs(subset(error.test, select=-lm))); title(main="ML models", sub="Forecasting Absolute Errors")
-boxplot(subset(error.test)); title(main="ML models", sub="Forecasting Errors")#, select=-lm
-
 ```
+
+
+```{r P4}
+summary(error.test)
+```
+
+
+```{r P4}
+boxplot(abs(subset(error.test))); title(main="ML models", sub="Forecasting Absolute Errors")
+```
+
+
+```{r P4}
+boxplot(subset(error.test)); title(main="ML models", sub="Forecasting Errors")#, select=-lm
+```
+Se puede observar que los errores para ambos modelos entregan resultados muy similares, sin embargo se puede verificar que el error medio absoluto (MAE) para el modelo KNN es de 1.59461,  levemente mayor que es del Random Forest, que es de 1.58426. No solo eso, sino que el rango de errores del KNN también es claramente mayor, tal cual se observa en los boxplot.
+
+Viendo más allá de las diferencias de los errores, para elegir un mejor modelo se debe considerar la el número de variables explicativas que implican. Claramente si se desea un modelo más sencillo se debe escoger Random Forest el cual tiene como óptimo usar simplemente 2 variables. Si se desea crear un modelo más complejo y explicativo lo ideal sería usar el modelo KNN que tiene más variables que pueden ser relevantes para lo que se desee explicar, sin embargo tiene un error un poco mayor en su predicción.
+
+
 #### Pregunta 5
 
 (2.0 puntos) En esta parte, se compararán los grados de satisfacción entre las distintas salas de la cadena de supermercados. Para lo siguiente usted deberá clasificar cada evaluación de la calidad de servicios de acuerdo a si el cliente está o no satisfecho. Para eso puede considerar que un cliente está satisfecho si tiene un Rating mayor o igual a los 7 puntos. Con esto:
