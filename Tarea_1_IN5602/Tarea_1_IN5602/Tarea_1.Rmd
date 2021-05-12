@@ -516,6 +516,7 @@ coef(Lasso2)
 Este modelo Lasso entrega muchas constantes significativas, en comparación al modelo de regresión lineal que solo entregaba 2 constantes con alta significancia. Para este caso, el modelo Lasso si considera significativas las mismas 2 constantes de la regresión lineal, aunque los valores del modelo Lasso son más cercanos a cero. Sin embargo, el modelo Lasso entrega 10 otras constantes significativas, de las cuales solo 2 constantes son positivas. La razón de esto puede ser el valor de lambda, el cual tendría que ser mayor para funcionar de mejor manera.
 
 
+
 #### Pregunta 3
 
 (1.0 puntos)Use al menos dos de los modelos de aprendizaje de máquinas que vimos en clases (MARS, kNN, regression tree, random forest) para generar un pronóstico de Rating de un cliente al realizar una compra y compare la capacidad de estos modelos con respecto a los de regresión lineal.
@@ -527,10 +528,9 @@ En base a este conjunto de variables se realizarán dos modelos de aprendizaje d
 #### Modelo Random Forest:
 ```{r p3rf}
 ### Ejecutar Random Forest
-train.randomf <- train(Rating ~ City + log(Total) + Time  + Product.line 
-                     +Customer.type+City*Gender*Weekday,
+train.randomf <- train(Rating ~ City + log(Total) + Time +City*Gender*Weekday,
                    data=train, method="rf",  
-                       trControl = trainControl("cv", number=15),
+                       trControl = trainControl("cv", number=10),
                        preProcess = c("center","scale"),
                        tuneLength = 5 
 )
@@ -551,8 +551,7 @@ Para esto se obtiene k óptimo igual a 11
 ```{r p3knn}
 ### Ejecutar KNN
 
-train.knn <- train(Rating ~ City + log(Total) + Time  + Product.line 
-                     +Customer.type+City*Gender*Weekday, #+ Product.line*Payment si agreggo esto son 13
+train.knn <- train(Rating ~ City + log(Total) + Time +City*Gender*Weekday, 
                    data=train, method="knn",  
                    trControl = trainControl("cv", number=15),
                    preProcess = c("center","scale"),
@@ -570,7 +569,7 @@ Al correr este modelo se obtiene que el resultado que entrega menos errores en l
 
 
 #### Regresión lineal
-```{r p2regrl}
+```{r p3regrl}
 ### Ejecutar KNN
 
 train.lm <- train(Rating ~ City + log(Total) + Time  + Product.line 
@@ -588,50 +587,49 @@ error.lm <- test$Rating-test.lm
 
 Para comparar la capacidad de los modelos de machine learning frente a la regresión lineal debemos recordar que estos modelos son muy útiles cuando el foco del problema está en el pronóticos de relaciones complejas y no lineales, en cambio las regresiones lineales son muy útiles para entender la relación de las variables con los componentes de la regresión. 
 
-En base a ese razonamiento, en base al enfoque teórico sería mucho más útil realizar una regresión lineal que un modelo de Machine Learning, con el objetivo de entender como afectan las variables al Rating. Sin embargo al ser los de Machine Learning modelos mucho más complejos que pueden observar relaciones no lineales, estos suelen dar mejores resultados en capacidad predictiva.
+En base a ese razonamiento, en base al enfoque teórico sería más útil realizar una regresión lineal que un modelo de Machine Learning, con el objetivo de entender como afectan las variables al Rating. Sin embargo al ser los de Machine Learning modelos mucho más complejos que pueden observar relaciones no lineales, estos suelen dar mejores resultados en capacidad predictiva.
 
 Para comprobar esto se pueden comparar los errores de los modelos ML versus la regresión lineal, observandose los siguientes resultados:
 
-```{r}
-ventas.test <- data.frame(  knn=test.knn,  rf=test.randomf,lm=test.lm, ventas=ytest)
-error.test <- data.frame( knn=error.knn, rf=error.randomf,lm=error.lm )
+```{r P3e1}
+#RSME
+ventas.test <- data.frame(  knn=test.knn,  rf=test.randomf,lm=test.lm, ventas=ytest)# agregar lm=test.lm,
+error.test <- data.frame( knn=error.knn, rf=error.randomf,lm=error.lm)#agregar lm=error.lm, 
 
 summary(abs(error.test))
 ```
 
-Se ve que los errores para este modelo son menores para los modelos de Machine Learning, lo cual concuerda con la intuición de que estos tienen mejor capacidad predictiva, y servirían mejor para el objetivo de predecir el rating.
+```{r P3e2}
+summary(error.test)
+```
+
+
+```{r P3e3}
+boxplot(abs(subset(error.test))); title(main="ML models", sub="Forecasting Absolute Errors")
+```
+
+
+```{r P3e4}
+boxplot(subset(error.test)); title(main="ML models", sub="Forecasting Errors")#, select=-lm
+```
+
+En general se ve que los errores  son menores para los modelos de Machine Learning, lo cual concuerda con la intuición de que estos tienen mejor capacidad predictiva para modelos más complejos, y servirían mejor para el objetivo de predecir el rating.
 
 
 #### Pregunta 4
 
 (0.5 puntos) Compare las fortalezas y debilidades de los modelos anteriores, evalúe de acuerdo a algunas de las métricas que vimos en clases y discuta qué modelo recomendaría usar.
 
-Primero se compararán los errores que entregan ambos modelos al probarse en el set de testeo.
-```{r P4}
-#RSME
-ventas.test <- data.frame(  knn=test.knn,  rf=test.randomf, ventas=ytest)# agregar lm=test.lm,
-error.test <- data.frame( knn=error.knn, rf=error.randomf)#agregar lm=error.lm, 
+En la P4 no solo se debe comparar la predicción, también el ajuste y la forma de los modelos que están utilizando. También se utilizan métricas de evaluación en este caso. Con forma me refiero, por ejemplo, a que regresión lineal asume una forma a lineal en las relaciones, MARS asume no linealidades con puntos de corte, y así. Finalmente con la comparación en predicción, ajuste y la reflexión sobre sus modelos, deberían decidir cual es el mas completo para usar de manera de determinar la dependiente (ratings).
 
-summary(abs(error.test))
-```
+Para comparar su capacidad predicctiva recordamos que el modelo Random Forest es el que presenta el menor error para las métricas RMSE (1.706) y MAE (1.451), sin embargo el modelo de regresión lineal es el que tiene mayor R^2, es decir, explica mejor la variabilidad de los datos, sin embargo el R^2 del random forest le sigue muy de cerca, y se puede observar en los boxplot de la pregunta anterior que el random forest es el que tiene menor rando de errores, por lo cual el mejor modelo predictivo para este caso sería Random Forest.
 
+Viendo más allá de las diferencias de los errores, para elegir un mejor modelo se debe considerar la el número de variables explicativas que implican. Claramente si se desea un modelo más sencillo se debe escoger Random Forest el cual tiene como óptimo usar simplemente 2 variables. Si se desea crear un modelo más complejo sería mejor usar el modelo KNN que tiene más variables que pueden ser relevantes para lo que se desee explicar, sin embargo tiene un error un poco mayor en su predicción.
 
-```{r P4.1}
-summary(error.test)
-```
+Además se debe considerar la forma en que trabajan los modelos. El modelo KNN se basa en encontrar grupos de objetos similares, y luego usa el valor de respuesta media de k observaciones como el resultado previsto. El modelo de Random Forest es un conjunto de varios árboles de decición que van agregando grupos para predecir cual será el objetivo, esta agrupación hace que este tenga menos variabilidad al clasificar, y suele entregar mejores predicciones. Y el modelo de regresión lineal busca minimizar la distancia entre la regresión y los datos buscando un mejor ajuste, sin embargo al ver las relación lineal de las variables con "y", y no es capaz de encontrar relaciones más complejas. En esto se observa que el modelo más adecuado vuelve a ser el Random Forest, pues se ha verificado la importancia de la interacción entre variables para comprender el rating.
 
+Finalmente se puede confirmar que el mejor modelo para determinar el rating es el de Random Forest, pues cumple con minimizar el error y va clasificando según distintos parámetros hasta encontrar el rating esperado de cierto cliente, lo cual coincide con lo que hemos planteado en los modelos anteriores.
 
-```{r P4.5}
-boxplot(abs(subset(error.test))); title(main="ML models", sub="Forecasting Absolute Errors")
-```
-
-
-```{r P4.3}
-boxplot(subset(error.test)); title(main="ML models", sub="Forecasting Errors")#, select=-lm
-```
-Se puede observar que los errores para ambos modelos entregan resultados muy similares, sin embargo se puede verificar que el error medio absoluto (MAE) para el modelo KNN es de 1.59461,  levemente mayor que es del Random Forest, que es de 1.58426. No solo eso, sino que el rango de errores del KNN también es claramente mayor, tal cual se observa en los boxplot.
-
-Viendo más allá de las diferencias de los errores, para elegir un mejor modelo se debe considerar la el número de variables explicativas que implican. Claramente si se desea un modelo más sencillo se debe escoger Random Forest el cual tiene como óptimo usar simplemente 2 variables. Si se desea crear un modelo más complejo y explicativo lo ideal sería usar el modelo KNN que tiene más variables que pueden ser relevantes para lo que se desee explicar, sin embargo tiene un error un poco mayor en su predicción.
 
 
 #### Pregunta 5
