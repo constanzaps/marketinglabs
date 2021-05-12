@@ -447,9 +447,11 @@ En el set de variables *xtrain* se eliminaron algunas variables que estaban alta
 
 **a)** Proponga al menos dos especificaciones alternativas para el objetivo propuesto. Justifique muy brevemente por que las variables que está incluyendo en el modelo tienen sentido desde el punto de vista del negocio. Justifique además el nivel de agregación escogido y los índices considerados en el modelo.
 
-**R.:** El rating según los datos provistos por la cadena de supermercados, puede depender de 4 tipos de dimensiones: caracterización de la compra (dada por las variables *Gender*, *Payment*, *Total*, entre otras), zona geográfica de la compra (dada por las variables *Branch* y *City*), tipo de producto (dado por la variable *Product.line*, entre otras) y caracterización temporal de la compra (dada por las variables *Weekday*, *Time*, entre otras).
+**R.:** El rating según los datos provistos por la cadena de supermercados, puede depender de 4 tipos de dimensiones: caracterización de la compra (dada por las variables *Gender*, *Payment*, *Total*, entre otras), zona geográfica de la compra (dada por las variables *Branch* y *City*), tipo de producto (dado por la variable *Product.line*, entre otras) y caracterización temporal (dada por las variables *Weekday*, *Time*, entre otras).
 
 En una primera regresión se propone un modelo de regresión lineal de interacción triple entre las variables City, Gender y Weekday. Es esperable pensar que el rating asignado por los clientes varíe en cada ciudad, por distintas razones incluso más allá de motivos relacionados a la tienda misma. Y de igual forma tiene sentido que los ratings sean distintos dependiendo del día de la semana en que se tome la muestra, esto último respaldado por el EDA realizado. Finalmente, en el EDA se encontraron diferencias con respecto al género, lo cual se busca estudiar más a detalle.
+
+En esta regresión se están estudiando efectos en 3 de las 4 dimensiones anteriormente señaladas: la caracterización de la compra, la zona geográfica y la caracterización temporal. El nivel de agregación fue escogido gracias a lo observado en gráficas al realizar el EDA, ya que en particular se observaron cambios en el rating según el día de la semana, al contrastarlo según género y ciudad.
 
 
 ```{r P2_a.1}
@@ -460,13 +462,10 @@ lm1 <- lm(Rating ~ City*Gender*Weekday, data=ventas) #regresión lineal 1 con da
 summary(lm1)
 
 ```
+
 En esta regresión se observa que, de manera significativa, el género femenino puntúa un rating de satisfacción mayor, específicamente aumentando el rating en 1,337. Este efecto se intensifica los días miércoles en las ciudades de Yangon y Naypyitaw, en donde el rating femenino es 3,237 y 2,720 puntos más alto, respectivamente.
 
-Sin embargo, este es un efecto muy particular, al que se debe tener en cuenta. La regresión indica también que, en general, los miércoles y jueves el género femenino puntúa 2,609 y 1,781 puntos más bajo en el rating, respectivamente. Es más, en la ciudad de Yangon las mujeres puntúan en promedio un ranking de 1,593 puntos más bajo que el promedio, por lo que se debe estudiar más a fondo lo que sucede 
-
-Este efecto es dsitinto en la ciudad de Yangon, en donde las mujeres en esta ciudad califican su satisfacción con un rating 1,593 puntos más bajo en promedio. El efecto de el género femenino en esta ciudad es particularmente más fuerte los días miércoles, en que muestran un rating 2,609 puntos más bajo.
-
-Pero este efecto negativo del género femenino los miércoles no es particular de Yangon. Esto ocurre los miércoles y jueves independientemente de las ciudades, siendo el ranking 2,609 puntos más bajo los miércoles y 1,781 puntos más bajo los jueves.
+Sin embargo, este es un efecto muy particular, al que se debe tener en cuenta. La regresión indica también que, en general, los miércoles y jueves el género femenino puntúa 2,609 y 1,781 puntos más bajo en el rating, respectivamente. Es más, en la ciudad de Yangon las mujeres puntúan en promedio un ranking de 1,593 puntos más bajo que el promedio, por lo que se debe estudiar más a fondo lo que sucede en las tiendas de Yangon y Naypyitaw los miércoles para contraarrestar la estadística.
 
 En una segunda regresión se propone un modelo de regresión lineal con interacción triple entre las variables Gender, Total y Weekday. En primer lugar, se presume que los clientes pueden tener distinto ánimo dependiendo del día de la semana en que se encuentren, lo que lleva a pensar a que la variable Weekday afecte de manera indirecta en el rating del cliente. Por otro lado, las personas pueden llevarse una sorpresa al revisar el valor total de la compra en su boleta, y esto afectará en el ranking otorgado por el consumidor. Finalmente, el EDA indica que interacciones de variables con el género del consumidor generan diferencias observables en los gráficos, por lo que es una variable interesante de estudio.
 
@@ -484,7 +483,7 @@ summary(lm2)
 
 **b)** Sobre los dos modelos planteados en la parte anterior, aplique un método de selección automática de variables y compare respecto a los resultados anteriores.
 
-**R.:** 
+**R.:** El método de selección adecuado para este caso es **Lasso**. Para esto, primero se crea una matriz con las interacciones respectivas en cada regresión para poder entregarle esto a la función *glmnet* y que el algoritmo funcione, con un lambda igual a 0,05. 
 
 ```{r P2_b.1}
 
@@ -495,6 +494,9 @@ coef(Lasso1) #impresión de coeficientes
 
 ```
 
+Las constantes entregadas por el modelo Lasso varían bastante con respecto a las entregadas por la regresión lineal. Por ejemplo, el día miércoles por sí solo no era significativo en la regresión lineal mientras que según el modelo Lasso (con lambda igual a 0,05) sí lo es. También la interacción entre el género femenino y la ciudad Yangon, que según la regresión lineal es significativa pero según el modelo Lasso no lo es.
+
+
 ```{r P2_b.2}
 
 interaccion_lm2 <- model.matrix(~Gender*Weekday*log(Total), data=ventas)
@@ -503,6 +505,9 @@ Lasso2 <- glmnet(interaccion_lm2, ventas$Rating, alpha=1, lambda=0.05)
 coef(Lasso2)
 
 ```
+
+
+
 ```{r P2_b.3}
 
 ventas_sin_rating <- subset(ventas, select = -c(Rating))
