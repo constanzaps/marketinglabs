@@ -610,18 +610,30 @@ Viendo más allá de las diferencias de los errores, para elegir un mejor modelo
 
 ```{r P5_a}
 #Modelo Homogéneo con variables explicativas
-ventas2 <- ventas %>%
-  mutate(Satisfecho = ifelse(Rating >= 7,1,0))
+
+#Creamos las variables para cada tienda:
+
+ventas <- ventas %>%
+  mutate(Satisfecho = ifelse(Rating >= 7,1,0), Compras = 1)
+
+#Train - test
+
+ventas_train_A = ventas[ventas$Branch=="A",]  %>% sample_frac(0.7) #tomamos un 70% de las compras en sucursal A
+ventas_train_B = ventas[ventas$Branch=="B",]  %>% sample_frac(0.7) #tomamos un 70% de las compras en sucursal B
+ventas_train_C = ventas[ventas$Branch=="C",]  %>% sample_frac(0.7) #tomamos un 70% de las compras en sucursal C
+
+ventas_train_A_todo = ventas_train_A %>%
+  summarise(TR=sum(Satisfecho)/sum(Compras),
+            Y=sum(Satisfecho),
+            m=sum(Compras))
+
 ```
 
 ```{r}
-ggplot(ventas2, aes(x=Satisfecho, fill = Satisfecho))+
-  geom_density(position = 'fill')+
-  facet_grid(Gender~ Weekday)+
-  theme(plot.title = element_text(hjust = 0.5))+
-  labs(x='Tienda', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y la tienda.')
+x <- seq(0,ventas_train_A_todo$m,by = 1)
+y <- dbinom(x, ventas_train_A_todo$m, ventas_train_A_todo$TR)
+plot(x,y)
 ```
-
 
 
 
