@@ -460,19 +460,24 @@ summary(lm1)
 ```
 
 
+
+En una segunda regresión se propone un modelo de regresión lineal con interacción triple entre las variables Gender, Total y Weekday. En primer lugar, se presume que los clientes pueden tener distinto ánimo dependiendo del día de la semana en que se encuentren, lo que lleva a pensar a que la variable Weekday afecte de manera indirecta en el rating del cliente. Por otro lado, las personas pueden llevarse una sorpresa al revisar el valor total de la compra en su boleta, y esto afectará en el ranking otorgado por el consumidor. Finalmente, el EDA indica que interacciones de variables con el género del consumidor generan diferencias observables en los gráficos, por lo que es una variable interesante de estudio.
+
 ```{r P2_a.2}
 
 #lm2 <- lm(Rating ~ Product.line*dia, data = ventas)
 #lm2 <- lm(Rating ~ Gender*Payment*dia , data=ventas) #regresión lineal 2 con datos
 #lm2 <- lm(Rating ~ Product.line*Weekday*Payment, data=ventas)
 
-lm2 <- lm(Rating ~ Gender*Total*Weekday, data=ventas) #regresión lineal 2 con datos
+lm2 <- lm(Rating ~ Gender*log(Total)*Weekday, data=ventas) #regresión lineal 2 con datos
 
 summary(lm2)
 
 ```
 
 **b)** Sobre los dos modelos planteados en la parte anterior, aplique un método de selección automática de variables y compare respecto a los resultados anteriores.
+
+**R.:** 
 
 ```{r P2_b.1}
 
