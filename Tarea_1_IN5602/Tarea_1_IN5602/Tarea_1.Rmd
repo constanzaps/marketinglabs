@@ -110,8 +110,8 @@ set.seed(1234)
 ```
 
 ```{r, include = FALSE}
-#path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
-path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
+path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
+#path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
 #path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
 setwd(path)
 ```
@@ -221,7 +221,7 @@ figure
 Los histogramas de las variables *cogs, gross.income, Tax 5% y Total* son muy similares entre si, por lo cual puede existir un problema de correlación.
 
 A través de un diagrama de correlaciones se puede visualizar la relación existente entre las variables numéricas:
-```{r, fig.width=11, fig.height=4}
+```{r, fig.width=11, fig.height=4, echo= FALSE}
 nums <- ventas[ ,unlist(lapply(ventas, is.numeric))] #variables numéricas
 nums$gross.margin.percentage <- NULL #Quitamos la variable constante
 ggcorr(nums,  label = TRUE, label_color = "white", high='#000080',
@@ -277,7 +277,7 @@ figure
 
 ```
 
-Con ello se puede observar que la mayoría de estas categorías están repartidas con igual porcentaje dentro de la base de datos, siendo la excepción las fechas, donde existen algunos días más frecuentes que otros. Otro dato interesante es que las *Branch* tienen una distribución similar a la variable *City*. Para explorar aún más su relación, se genera el siguiente barplot:
+Con ello se puede observar que la mayoría de estas categorías están repartidas con igual porcentaje dentro de la base de datos, siendo la excepción las fechas, donde existen algunos días de la semana más frecuentes que otros. Otro dato interesante es que las Tiendas tienen una distribución similar a la variable *City*. Para explorar aún más su relación, se genera el siguiente barplot:
 
 ```{r, fig.width=4, fig.height=4, dpi=100, echo=FALSE}
 ggplot(ventas, aes(x=City, fill = Branch))+
@@ -289,7 +289,7 @@ ggplot(ventas, aes(x=City, fill = Branch))+
 Lo anterior indica que la ciudad de Yangon tiene el supermercado A, la ciudad Mandalay tiene al supermercado B y los centros C están unicamente en Naypyitaw. Dado lo anterior, hablar sobre *Branch* o *City* será equivalente desde ahora en adelante.
 
 
-Ahora, si se analiza como se comportan las variables en función de la satisfacción, se puede ver los siguientes gráficos respecto a las variables numéricas, donde se puede ver que la satisfacción se comporta de manera equitativa para todos los valores de la variable númerica y no emerge ninguna relación aparante.
+Ahora, si se analiza cómo se comportan las variables en función de la satisfacción, se pueden ver los siguientes gráficos respecto a las variables numéricas, donde se observa que la satisfacción se comporta de manera equitativa para todos los valores de la variable númerica y no emerge ninguna relación aparante.
 ```{r, fig.width=10, fig.height=6, echo=FALSE}
 g1 <- ggplot(ventas) +
   aes(y=Rating, x=Total) +
@@ -325,9 +325,9 @@ g4 <- ggplot(ventas) +
 grid.arrange(g1, g2,g3, g4,nrow = 2) #une las  gráficas. 
 ```
 
-Si se analiza el comportamiento de la satisfacción con respecto a otras variables relevantes mediante los siguientes gráficos:
+Se analiza el comportamiento de la satisfacción con respecto a otras variables relevantes mediante los siguientes gráficos:
 
-```{r, fig.width=11, fig.height=8}
+```{r, fig.width=11, fig.height=8, echo= FALSE}
 g1 <- ggplot(ventas, aes(y=Rating, x=Weekday, fill=Weekday))+
   geom_boxplot(alpha=0.4)+
   theme(plot.title = element_text(hjust = 0.5))+
@@ -360,42 +360,37 @@ A simple vista no existen relaciones muy marcadas entre las comparaciones. Segú
 
 Dado que analizar unicamente la interacción de una variable no arroja resultados muy evidentes, se generan boxplot que reunan algunas combinaciones de variables para poder explicar al *Rating*.
 
-```{r, fig.width=10, fig.height=5}
-ggplot(ventas, aes(x=factor(round_any(log(Total),0.2)), y=Rating, fill = Gender))+
-  geom_boxplot()+
-  facet_grid(Gender ~ Weekday)
-```
-
-```{r, fig.width=16, fig.height=5}
+```{r, fig.width=16, fig.height=5, echo= FALSE}
 ggplot(ventas, aes(x=City, y=Rating, fill = City))+
   geom_boxplot()+
   facet_grid(Gender ~ Weekday)+
   theme(plot.title = element_text(hjust = 0.5))+
-  labs(x='Tienda', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y la tienda.')
+  labs(x='Ciudad', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y la ciudad')
 ```
 
-```{r, fig.width=16, fig.height=5}
+De esta interacción se observan varios resultados interesantes: los miércoles las mujeres de mandalay tienen una baja satisfacción, en comparación con el resto de ciudades y de días. 
+
+```{r, fig.width=16, fig.height=5, echo= FALSE}
 ggplot(ventas, aes(x=Payment, y=Rating, fill = Payment))+
   geom_boxplot()+
   facet_grid(Gender~ Weekday)+
   theme(plot.title = element_text(hjust = 0.5))+
-  labs(x='Tienda', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y la tienda.')
+  labs(x='Tipo de pago', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y tipo de pago')
 ```
 
-
-Se puede observar que las ventas son parecidas en las tiendas (o branch), sin embargo la C vende un poco más.
+Se puede observar que los miercoles y los jueves varía el tipo de pago seún género, y los días sádados los hombres que pagan con efectivo califican peor.
 
 ```{r, fig.width=11, fig.height=3}
 g <- ggplot(ventas, aes(y=Total, fill=factor(Branch))) + geom_boxplot(alpha=0.4)+ facet_grid(.~Product.line)
 g
 ```
-En este se puede observar que la tienda C es la que vende más comida,y la tienda asociada a la marca B vende pocos accesorios.
+En este se puede observar que la tienda C es la que tiene más ganancias,y la tienda asociada a la marca B vende poco en accesorios. 
 
 ```{r, fig.width=6, fig.height=4}
 g <- ggplot(ventas, aes(y=Rating, fill=factor(City))) + geom_boxplot(alpha=0.4)+ facet_grid(Gender~City)
 g
 ```
-Con esta interacción se puede observar que el rating cambia al realizar la interacción ciudad y género, lo cual implica resultados bastante distintos para rating.
+Con esta interacción se puede observar que el rating cambia ligeramente en promedio al realizar la interacción ciudad y género.
 
 
 ```{r, fig.width=8, fig.height=4}
@@ -404,7 +399,7 @@ g3 <- ggplot(ventas, aes(x=Rating, fill=factor(Gender))) + geom_density(alpha=0.
 g3
 ```
 
-Al controlar por pares de variables también se pueden distinguir algunas diferencias entre segmentos, donde por ejemplo los hombres que pagan con efectivo pueden calificar peor, al igual que las calificaciones por productos que tienen distribuciones concentradas en distintos puntos dependiendo de la marca. Aunque estas diferencias no son muy notables dado lo equilibrados que son los datos de las ventas, si existen diferencias que salen a la luz de estas interacciones de variables lo cual vale tener en cuenta para el estudio.
+Finalemente, aunque las diferencias de segmentos no son muy notables dado lo equilibrados que son los datos de las ventas, si existen diferencias que salen a la luz de realizar interacciones de variables lo cual vale tener en cuenta para el estudio.
 
 Como se mencionó anteriormente, hay variables que tienen una correlación perfecta o que no tienen varianza alguna. La presencia de estos factores puede afectar de manera significativa el desarrolllo de las preguntas siguientes, por lo que serán eliminadas.
 
@@ -420,7 +415,6 @@ head(ventas)
 (2.0 puntos) Usando los aprendizajes derivados de la exploración de datos, use un enfoque de regresión lineal para examinar cuantitativamente qué factores determinan la satisfacción al momento de realizar una compra.
 
 ```{r}
-
 # Construimos un vector que esta formado por números de filas aleatoriamente
 index <- sample(1:nrow(ventas), size= nrow(ventas)*0.7)
 
@@ -429,17 +423,12 @@ train <- ventas[index, ]
 
 # Anteponiendo el "-" escogemos las filas en de la base que no están en index
 xtrain <- subset(train, select = -c(Rating))
-
 ytrain <- train$Rating
 
 # Se quitan variables correlacionadas
 test  <- ventas[-index, ]
-
 xtest <- subset(test, select = -c(Rating))
-
 ytest <- test$Rating
-
-
 ```
 
 Para comenzar esta sección, se crea un *train set* y un *test set*, con una proporción de 70%:30%.
@@ -456,10 +445,7 @@ En esta regresión se están estudiando efectos en 3 de las 4 dimensiones anteri
 
 
 ```{r P2_a.1}
-
-
 lm1 <- lm(Rating ~ City*Gender*Weekday, data=ventas) #regresión lineal 1 con datos
-
 summary(lm1)
 
 ```
@@ -468,18 +454,12 @@ En esta regresión se observa que, de manera significativa, el género femenino 
 
 Sin embargo, este es un efecto muy particular, al que se debe tener en cuenta. La regresión indica también que, en general, los miércoles y jueves el género femenino puntúa 2,609 y 1,781 puntos más bajo en el rating, respectivamente. Es más, en la ciudad de Yangon las mujeres puntúan en promedio un ranking de 1,593 puntos más bajo que el promedio, por lo que se debe estudiar más a fondo lo que sucede en las tiendas de Yangon y Naypyitaw los miércoles para contraarrestar la estadística.
 
-En una segunda regresión se propone un modelo de regresión lineal con interacción triple entre las variables *Gender*, *Payment* y *Weekday*. Tal como se señaló para la regresión anterior, las emociones de las personas varían según el día de la semana, y esto puede afectar al rating. De igual manera el género afecta al ranking, como se observó en la regresión anterior. Finalmente, se agrega el tipo de pago debido a que se desea analizar si este tiene un efecto en el ranking, el cual puede deberse a deficiencias en las tecnologías dispuestas para el pago y que puedan afectar la satisfacción del cliente.
+En una segunda regresión se propone un modelo de regresión lineal con interacción triple entre las variables *Gender*, *Payment* y *Weekday*. Tal como se señaló para la regresión anterior, las emociones de las personas varían según el día de la semana, y esto puede afectar al rating. De igual manera el género afecta al rating, como se observó en la regresión anterior. Finalmente, se agrega el tipo de pago debido a que se desea analizar si este tiene un efecto en el rating, el cual puede deberse a deficiencias en las tecnologías dispuestas para el pago y que puedan afectar la satisfacción del cliente.
 
 En esta regresión se están estudiando efectos en 2 de las 4 dimensiones anteriormente señaladas: la caracterización de la compra y una caracterización temporal. El nivel de agregación escogido se debe a un gráfico realizado con anterioridad en el EDA, en donde se observan cambios en el rating al comparar por estas 3 variables simultáneamente. 
 
 ```{r P2_a.2}
-
-#lm2 <- lm(Rating ~ Product.line*dia, data = ventas)
-#lm2 <- lm(Rating ~ Gender*Payment*dia , data=ventas) #regresión lineal 2 con datos
 lm2 <- lm(Rating ~ Gender*Weekday*Payment, data=ventas)
-
-#lm2 <- lm(Rating ~ Gender*log(Total)*Weekday, data=ventas) #regresión lineal 2 con datos
-
 summary(lm2)
 
 ```
@@ -506,13 +486,12 @@ Las constantes entregadas por el modelo Lasso varían bastante con respecto a la
 
 
 ```{r P2_b.2}
-
 interaccion_lm2 <- model.matrix(~Gender*Weekday*Payment, data=ventas)
 
 Lasso2 <- glmnet(interaccion_lm2, ventas$Rating, alpha=1, lambda=0.05)
 coef(Lasso2)
-
 ```
+
 Este modelo Lasso entrega muchas constantes significativas, en comparación al modelo de regresión lineal que solo entregaba 2 constantes con alta significancia. Para este caso, el modelo Lasso si considera significativas las mismas 2 constantes de la regresión lineal, aunque los valores del modelo Lasso son más cercanos a cero. Sin embargo, el modelo Lasso entrega 10 otras constantes significativas, de las cuales solo 2 constantes son positivas. La razón de esto puede ser el valor de lambda, el cual tendría que ser mayor para funcionar de mejor manera.
 
 
@@ -521,21 +500,20 @@ Este modelo Lasso entrega muchas constantes significativas, en comparación al m
 
 (1.0 puntos)Use al menos dos de los modelos de aprendizaje de máquinas que vimos en clases (MARS, kNN, regression tree, random forest) para generar un pronóstico de Rating de un cliente al realizar una compra y compare la capacidad de estos modelos con respecto a los de regresión lineal.
 
-En base a lo observado en la P2, se escogen las variables City, Total, Product.line y Time pues fueron variables que Lasso dió como significativas. Además se escogen las interacciones que dieron resultados más interesantes de las que se usaron en la P1, es decir City, Gender y Weekday.
+**R.:** En base a lo observado en la P2, se escogen las variables City, Gender, Weekday y Payment pues fueron variables que Lasso dió como significativas y van coherentes a nuestros modelos. Además se escogen la interacción que entregó resultados más interesantes de las que se usaron en el EDA y la regresión, es decir City, Gender y Weekday.
 
-En base a este conjunto de variables se realizarán dos modelos de aprendizaje de máquinas: Modelo Random Forest y Modelo KNN. Luego también se utilizará el modelo de regresión lineal para comparar la capacidad que tienen los diferentes tipos de modelo.
+ En base a este conjunto de variables se realizarán dos modelos de aprendizaje de máquinas: *Modelo Random Forest* y *Modelo KNN*. Luego también se utilizará el modelo de regresión lineal para comparar la capacidad que tienen los diferentes tipos de modelo.
 
 #### Modelo Random Forest:
 ```{r p3rf}
 ### Ejecutar Random Forest
-train.randomf <- train(Rating ~ City + log(Total) + Time +City*Gender*Weekday,
+train.randomf <- train(Rating ~ City + Gender + Weekday + Payment
+                       +City*Gender*Weekday,
                    data=train, method="rf",  
                        trControl = trainControl("cv", number=10),
                        preProcess = c("center","scale"),
                        tuneLength = 5 
 )
-
-
 
 print(train.randomf)
 
@@ -543,37 +521,34 @@ ggplot(train.randomf)
 test.randomf  <- predict(train.randomf, newdata=test) 
 error.randomf <- test$Rating-test.randomf
 ```
-Al correr este modelo se obtiene que el resultado que entrega menos errores en la predicción es un modelo con 2 variables.
+Al correr este modelo se obtiene que el resultado que minimiza el error es un modelo de 2 variables.
 
 
 #### Modelo KNN
-Para esto se obtiene k óptimo igual a 11
-```{r p3knn}
-### Ejecutar KNN
 
-train.knn <- train(Rating ~ City + log(Total) + Time +City*Gender*Weekday, 
+```{r p3knn}
+train.knn <- train(Rating ~ City + Gender + Weekday + Payment
+                       +City*Gender*Weekday, 
                    data=train, method="knn",  
                    trControl = trainControl("cv", number=15),
                    preProcess = c("center","scale"),
                    tuneLength = 5 
 )
-#variables que empeoran
-#+ Customer.type*Product.line
-#+Unit.price sin esto llega a 1.74
+
 print(train.knn)
 ggplot(train.knn)
 test.knn  <- predict(train.knn, newdata=test) 
 error.knn <- test$Rating-test.knn
 ```
-Al correr este modelo se obtiene que el resultado que entrega menos errores en la predicción es un modelo con 13 variables.
+Al correr este modelo se obtiene que el resultado que entrega menos errores en la predicción es un modelo con 13 nodos, es decir, 13 clasificaciones de datos.
 
 
 #### Regresión lineal
 ```{r p3regrl}
 ### Ejecutar KNN
 
-train.lm <- train(Rating ~ City + log(Total) + Time  + Product.line 
-                     +Customer.type+City*Gender*Weekday, #+ Product.line*Payment si agreggo esto son 13
+train.lm <- train(Rating ~ City + Gender + Weekday + Payment
+                       +City*Gender*Weekday,
                    data=train, method="lm",  
                    trControl = trainControl("cv", number=15),
                    preProcess = c("center","scale"),
@@ -587,7 +562,7 @@ error.lm <- test$Rating-test.lm
 
 Para comparar la capacidad de los modelos de machine learning frente a la regresión lineal debemos recordar que estos modelos son muy útiles cuando el foco del problema está en el pronóticos de relaciones complejas y no lineales, en cambio las regresiones lineales son muy útiles para entender la relación de las variables con los componentes de la regresión. 
 
-En base a ese razonamiento, en base al enfoque teórico sería más útil realizar una regresión lineal que un modelo de Machine Learning, con el objetivo de entender como afectan las variables al Rating. Sin embargo al ser los de Machine Learning modelos mucho más complejos que pueden observar relaciones no lineales, estos suelen dar mejores resultados en capacidad predictiva.
+En base a ese razonamiento, para el enfoque teórico sería más útil realizar una regresión lineal que un modelo de Machine Learning, con el objetivo de entender como afectan las variables al Rating. Sin embargo al ser los de Machine Learning modelos mucho más complejos que pueden observar relaciones no lineales, estos suelen dar mejores resultados en capacidad predictiva.
 
 Para comprobar esto se pueden comparar los errores de los modelos ML versus la regresión lineal, observandose los siguientes resultados:
 
@@ -613,20 +588,19 @@ boxplot(abs(subset(error.test))); title(main="ML models", sub="Forecasting Absol
 boxplot(subset(error.test)); title(main="ML models", sub="Forecasting Errors")#, select=-lm
 ```
 
-En general se ve que los errores  son menores para los modelos de Machine Learning, lo cual concuerda con la intuición de que estos tienen mejor capacidad predictiva para modelos más complejos, y servirían mejor para el objetivo de predecir el rating.
+En general se ve que los errores son menores para los modelos de Machine Learning en particular para el de random forest, lo cual concuerda con la intuición de que estos tienen mejor capacidad predictiva para modelos más complejos, y servirían mejor para el objetivo de predecir el rating.
 
 
 #### Pregunta 4
 
 (0.5 puntos) Compare las fortalezas y debilidades de los modelos anteriores, evalúe de acuerdo a algunas de las métricas que vimos en clases y discuta qué modelo recomendaría usar.
 
-En la P4 no solo se debe comparar la predicción, también el ajuste y la forma de los modelos que están utilizando. También se utilizan métricas de evaluación en este caso. Con forma me refiero, por ejemplo, a que regresión lineal asume una forma a lineal en las relaciones, MARS asume no linealidades con puntos de corte, y así. Finalmente con la comparación en predicción, ajuste y la reflexión sobre sus modelos, deberían decidir cual es el mas completo para usar de manera de determinar la dependiente (ratings).
 
-Para comparar su capacidad predicctiva recordamos que el modelo Random Forest es el que presenta el menor error para las métricas RMSE (1.706) y MAE (1.451), sin embargo el modelo de regresión lineal es el que tiene mayor R^2, es decir, explica mejor la variabilidad de los datos, sin embargo el R^2 del random forest le sigue muy de cerca, y se puede observar en los boxplot de la pregunta anterior que el random forest es el que tiene menor rando de errores, por lo cual el mejor modelo predictivo para este caso sería Random Forest.
+**R.:** Para comparar su capacidad predictiva es necesario recordar que el modelo Random Forest es el que presenta el menor error para las métricas RMSE (1.698) y MAE (1.444), pero el modelo de regresión lineal es el que tiene mayor R^2, es decir, explica mejor la variabilidad de los datos. Sin embargo, el R^2 del Random Forest le sigue muy de cerca, y se puede observar en los boxplot de la pregunta anterior que este es el que tiene menor rango de errores, por lo cual el mejor modelo predictivo para el rating sería Random Forest.
 
-Viendo más allá de las diferencias de los errores, para elegir un mejor modelo se debe considerar la el número de variables explicativas que implican. Claramente si se desea un modelo más sencillo se debe escoger Random Forest el cual tiene como óptimo usar simplemente 2 variables. Si se desea crear un modelo más complejo sería mejor usar el modelo KNN que tiene más variables que pueden ser relevantes para lo que se desee explicar, sin embargo tiene un error un poco mayor en su predicción.
+Viendo más allá de las diferencias de los errores, para elegir un mejor modelo se debe considerar el número de variables explicativas que implican. Claramente si se desea un modelo más sencillo se debe escoger Random Forest el cual tiene como óptimo usar simplemente 2 variables. Si se desea crear un modelo más complejo sería mejor usar el modelo KNN que tiene más agrupaciones, es decir segmentos de clientes cercanos entre sí, los cuales pueden ser relevantes para lo que se desee explicar e interesantes de estudiar, sin embargo se obtiene un error un poco mayor en su predicción.
 
-Además se debe considerar la forma en que trabajan los modelos. El modelo KNN se basa en encontrar grupos de objetos similares, y luego usa el valor de respuesta media de k observaciones como el resultado previsto. El modelo de Random Forest es un conjunto de varios árboles de decición que van agregando grupos para predecir cual será el objetivo, esta agrupación hace que este tenga menos variabilidad al clasificar, y suele entregar mejores predicciones. Y el modelo de regresión lineal busca minimizar la distancia entre la regresión y los datos buscando un mejor ajuste, sin embargo al ver las relación lineal de las variables con "y", y no es capaz de encontrar relaciones más complejas. En esto se observa que el modelo más adecuado vuelve a ser el Random Forest, pues se ha verificado la importancia de la interacción entre variables para comprender el rating.
+Además se debe considerar la forma en que trabajan los modelos. El modelo KNN se basa en encontrar grupos de objetos similares, y luego usa el valor de respuesta media de k observaciones como el resultado previsto, en este caso dando k=13. El modelo de Random Forest es un conjunto de varios árboles de decisión que van agregando grupos para predecir cual será el objetivo, esta agrupación hace que este tenga menos variabilidad al clasificar, y suele entregar mejores predicciones. Y el modelo de regresión lineal busca minimizar la distancia entre la regresión y los datos buscando un mejor ajuste, sin embargo no es capaz de encontrar relaciones más complejas. En esto se observa que el modelo más adecuado vuelve a ser el Random Forest, pues se ha verificado la importancia de la interacción entre variables para comprender el rating.
 
 Finalmente se puede confirmar que el mejor modelo para determinar el rating es el de Random Forest, pues cumple con minimizar el error y va clasificando según distintos parámetros hasta encontrar el rating esperado de cierto cliente, lo cual coincide con lo que hemos planteado en los modelos anteriores.
 
