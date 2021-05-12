@@ -103,6 +103,7 @@ library(knitr)
 library(glmnet)
 library(MLmetrics)
 library(inspectdf)
+library(plyr)
 set.seed(1234)
 
 ```
@@ -334,47 +335,51 @@ g1 <- ggplot(ventas, aes(y=Rating, x=Weekday, fill=Weekday))+
 g2 <- ggplot(ventas, aes(y=Rating, x=Product.line, fill = Product.line))+
   geom_boxplot(alpha=0.4)+
   theme(plot.title = element_text(hjust = 0.5))+
-  labs(y='Satisfacción', x='Día', title='Satisfacción con respecto al tipo de producto')
+  labs(y='Satisfacción', x='Tipo de producto', title='Satisfacción con respecto al tipo de producto')
 
 g3 <- ggplot(ventas, aes(y=Rating, x=Branch, fill = Branch))+
   geom_boxplot(alpha=0.4)+
   theme(plot.title = element_text(hjust = 0.5))+
-  labs(y='Satisfacción', x='Día', title='Satisfacción con respecto a la tienda')
+  labs(y='Satisfacción', x='Tienda', title='Satisfacción con respecto a la tienda')
 
-fig <- ggarrange(g3, g1, g2, nrow=3)
+g4 <- ggplot(ventas, aes(y=Rating, x=Gender, fill = Gender))+
+  geom_boxplot(alpha=0.4)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(y='Satisfacción', x='Género', title='Satisfacción según el género')
+
+g5 <- ggplot(ventas, aes(y=Rating, x=Payment, fill = Payment))+
+  geom_boxplot(alpha=0.4)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(y='Satisfacción', x='Medio de pago', title='Satisfacción según el medio de pago')
+
+fig <- ggarrange(g3, ggarrange(g4, g5, ncol = 2), g1, g2, nrow=4)
 fig
 ```
-A simple vista no existen relaciones muy marcadas entre las comparaciones. Según los gráficos, los días con menor satisfacción
-```{r, fig.width=10, fig.height=8}
-g1 <- ggplot(ventas, aes(x=Rating, fill=factor(Weekday))) + geom_density(alpha=0.4)+ facet_grid(Product.line~Weekday)+theme(legend.position = "none")
-g1
-```
+A simple vista no existen relaciones muy marcadas entre las comparaciones. Según los gráficos, la tienda con menor nivel de Rating es la Tienda B, además, los días con menor satisfacción son los Miércoles, Jueves y Sábados. Sobre los productos, *Sports and travel* y *Electronic accessories* poseen el menor nivel de satisfacción. Con respecto al género del cliente, no se muestran diferencias marcadas de satisfacción, tampoco sobre el medio de pago.
 
-
-Luego se puede realizar un análisis de las variables categóricas, donde se observa que sí existen leves diferencias en las distribuciones de rating, notandose un poco más en las variables  *Product.line* y según género.
-
-
+Dado que analizar unicamente la interacción de una variable no arroja resultados muy evidentes, se generan boxplot que reunan algunas combinaciones de variables para poder explicar al *Rating*.
 
 ```{r, fig.width=10, fig.height=5}
-g2 <-ggplot(ventas, aes(x=Rating, fill=factor(Payment))) + geom_density(alpha=0.4) + facet_grid(. ~ Payment) +theme(legend.position = "none")
-g1 <- ggplot(ventas, aes(x=Rating, fill=factor(Product.line))) + geom_density(alpha=0.4)+ facet_grid(.~Product.line)+theme(legend.position = "none")
-g3 <- ggplot(ventas, aes(x=Rating, fill=factor(Gender))) + geom_density(alpha=0.4)+ facet_grid(.~Gender)+theme(legend.position = "none")
-
-grid.arrange(g1, g2, g3,nrow = 3) #une las  gráficas. 
+ggplot(ventas, aes(x=factor(round_any(log(Total),0.2)), y=Rating, fill = Gender))+
+  geom_boxplot()+
+  facet_grid(Gender ~ Weekday)
 ```
 
-
-
-
-
-
-
-Cantidad de ventas por sucursal
-```{r, fig.width=5, fig.height=2}
-g <- ggplot(ventas, aes(y=Total, fill=factor(Branch))) + geom_boxplot(alpha=0.4)
-g
+```{r, fig.width=16, fig.height=5}
+ggplot(ventas, aes(x=City, y=Rating, fill = City))+
+  geom_boxplot()+
+  facet_grid(Gender ~ Weekday)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x='Tienda', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y la tienda.')
 ```
 
+```{r, fig.width=16, fig.height=5}
+ggplot(ventas, aes(x=Payment, y=Rating, fill = Payment))+
+  geom_boxplot()+
+  facet_grid(Gender~ Weekday)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x='Tienda', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y la tienda.')
+```
 
 
 Se puede observar que las ventas son parecidas en las tiendas (o branch), sin embargo la C vende un poco más.
@@ -392,27 +397,12 @@ g
 Con esta interacción se puede observar que el rating cambia al realizar la interacción ciudad y género, lo cual implica resultados bastante distintos para rating.
 
 
-
-```{r, fig.width=10, fig.height=5}
-
-g1 <- ggplot(ventas, aes(x=Rating, fill=factor(Gender))) + geom_density(alpha=0.4)+ facet_grid(.~Payment)
-g2 <- ggplot(ventas, aes(x=Rating, fill=factor(Product.line))) + geom_density(alpha=0.2)+ facet_grid(City~Product.line)+theme(legend.position = "none")
-#png(width=800, height=360)
-grid.arrange(g1, g2, nrow = 2) #une las  gráficas. 
-``` 
-
-
-```{r, fig.width=8, fig.height=4}
-g3 <- ggplot(ventas, aes(x=Rating, fill=factor(Product.line))) + geom_density(alpha=0.4)+
-  facet_wrap(Customer.type~Product.line, ncol = 3)
-g3
-```
-
 ```{r, fig.width=8, fig.height=4}
 g3 <- ggplot(ventas, aes(x=Rating, fill=factor(Gender))) + geom_density(alpha=0.4)+
   facet_wrap(.~Product.line, ncol = 3)
 g3
 ```
+
 Al controlar por pares de variables también se pueden distinguir algunas diferencias entre segmentos, donde por ejemplo los hombres que pagan con efectivo pueden calificar peor, al igual que las calificaciones por productos que tienen distribuciones concentradas en distintos puntos dependiendo de la marca. Aunque estas diferencias no son muy notables dado lo equilibrados que son los datos de las ventas, si existen diferencias que salen a la luz de estas interacciones de variables lo cual vale tener en cuenta para el estudio.
 
 Como se mencionó anteriormente, hay variables que tienen una correlación perfecta o que no tienen varianza alguna. La presencia de estos factores puede afectar de manera significativa el desarrolllo de las preguntas siguientes, por lo que serán eliminadas.
@@ -620,8 +610,20 @@ Viendo más allá de las diferencias de los errores, para elegir un mejor modelo
 
 ```{r P5_a}
 #Modelo Homogéneo con variables explicativas
-
+ventas2 <- ventas %>%
+  mutate(Satisfecho = ifelse(Rating >= 7,1,0))
 ```
+
+```{r}
+ggplot(ventas2, aes(x=Satisfecho, fill = Satisfecho))+
+  geom_density(position = 'fill')+
+  facet_grid(Gender~ Weekday)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x='Tienda', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y la tienda.')
+```
+
+
+
 
 **b)**Estimar un modelo de decisión heterogéneo para cada sucursal y compare sus
  resultados entre sucursales. Discuta brevemente sus resultados.
