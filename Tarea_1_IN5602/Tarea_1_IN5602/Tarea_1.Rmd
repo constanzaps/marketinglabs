@@ -493,7 +493,7 @@ En base a este conjunto de variables se realizarán dos modelos de aprendizaje d
 #### Modelo Random Forest:
 ```{r p2rf}
 ### Ejecutar Random Forest
-train.randomf <- train(Rating ~ City + Total + Time  + Product.line 
+train.randomf <- train(Rating ~ City + log(Total) + Time  + Product.line 
                      +Customer.type+City*Gender*Weekday,
                    data=train, method="rf",  
                        trControl = trainControl("cv", number=15),
@@ -517,7 +517,7 @@ Para esto se obtiene k óptimo igual a 11
 ```{r p2knn}
 ### Ejecutar KNN
 
-train.knn <- train(Rating ~ City + Total + Time  + Product.line 
+train.knn <- train(Rating ~ City + log(Total) + Time  + Product.line 
                      +Customer.type+City*Gender*Weekday, #+ Product.line*Payment si agreggo esto son 13
                    data=train, method="knn",  
                    trControl = trainControl("cv", number=15),
@@ -539,7 +539,7 @@ Al correr este modelo se obtiene que el resultado que entrega menos errores en l
 ```{r p2regrl}
 ### Ejecutar KNN
 
-train.lm <- train(Rating ~ City + Total + Time  + Product.line 
+train.lm <- train(Rating ~ City + log(Total) + Time  + Product.line 
                      +Customer.type+City*Gender*Weekday, #+ Product.line*Payment si agreggo esto son 13
                    data=train, method="lm",  
                    trControl = trainControl("cv", number=15),
