@@ -414,10 +414,6 @@ head(ventas)
 
 
 
-
-
-
-
 #### Pregunta 2
 
 (2.0 puntos) Usando los aprendizajes derivados de la exploración de datos, use un enfoque de regresión lineal para examinar cuantitativamente qué factores determinan la satisfacción al momento de realizar una compra.
@@ -444,19 +440,20 @@ ytest <- test$Rating
 
 
 ```
+
 Para comenzar esta sección, se crea un *train set* y un *test set*, con una proporción de 70%:30%.
 En el set de variables *xtrain* se eliminaron algunas variables que estaban altamente correlacionadas con otras, y la ganancia por producto ya que es constante, y no servirá como variable predictora. También se elimina la variable a predecir, *Rating*.
 
 
 **a)** Proponga al menos dos especificaciones alternativas para el objetivo propuesto. Justifique muy brevemente por que las variables que está incluyendo en el modelo tienen sentido desde el punto de vista del negocio. Justifique además el nivel de agregación escogido y los índices considerados en el modelo.
 
-**R.:** En una primera regresión se propone un modelo de regresión lineal de interacción triple entre las variables City, Gender y Weekday. Es esperable pensar que el rating asignado por los clientes varíe en cada ciudad, por distintas razones incluso más allá de motivos relacionados a la tienda misma. Y de igual forma tiene sentido que los rating sean distintos dependiendo del día de la semana en que se tome la muestra, esto último respaldado por el EDA realizado. Finalmente, en el EDA se encontraron diferencias con respecto al género, lo cual se busca estudiar más a detalle.
+**R.:** En una primera regresión se propone un modelo de regresión lineal de interacción triple entre las variables City, Gender y Weekday. Es esperable pensar que el rating asignado por los clientes varíe en cada ciudad, por distintas razones incluso más allá de motivos relacionados a la tienda misma. Y de igual forma tiene sentido que los ratings sean distintos dependiendo del día de la semana en que se tome la muestra, esto último respaldado por el EDA realizado. Finalmente, en el EDA se encontraron diferencias con respecto al género, lo cual se busca estudiar más a detalle.
 
 
 ```{r P2_a.1}
 
 
-lm1 <- lm(Rating ~ City*Gender*Weekday , data=ventas) #regresión lineal 1 con datos
+lm1 <- lm(Rating ~ City*Gender*Weekday, data=ventas) #regresión lineal 1 con datos
 
 summary(lm1)
 
@@ -464,6 +461,10 @@ summary(lm1)
 
 
 ```{r P2_a.2}
+
+#lm2 <- lm(Rating ~ Product.line*dia, data = ventas)
+#lm2 <- lm(Rating ~ Gender*Payment*dia , data=ventas) #regresión lineal 2 con datos
+#lm2 <- lm(Rating ~ Product.line*Weekday*Payment, data=ventas)
 
 lm2 <- lm(Rating ~ Gender*Total*Weekday, data=ventas) #regresión lineal 2 con datos
 
@@ -473,12 +474,21 @@ summary(lm2)
 
 **b)** Sobre los dos modelos planteados en la parte anterior, aplique un método de selección automática de variables y compare respecto a los resultados anteriores.
 
-```{r P2_b}
+```{r P2_b.1}
 
-ventas_sin_rating <- subset(ventas, select = -c(Rating)) #data sin Rating
+interaccion_lm1 <- model.matrix(~City*Gender*Weekday, data=ventas)
 
-LassoModel <- glmnet(ventas_sin_rating, ventas$Rating, alpha=1, lambda=0.04) #modelo Lasso de autoselección
-coef(LassoModel) #impresión de coeficientes
+Lasso1 <- glmnet(interaccion_lm1, ventas$Rating, alpha=1, lambda=0.05) #modelo Lasso de autoselección
+coef(Lasso1) #impresión de coeficientes
+
+```
+
+```{r P2_b.2}
+
+interaccion_lm2 <- model.matrix(~Gender*Weekday*log(Total), data=ventas)
+
+Lasso2 <- glmnet(interaccion_lm2, ventas$Rating, alpha=1, lambda=0.05)
+coef(Lasso2)
 
 ```
 
@@ -491,7 +501,7 @@ En base a lo observado en la P2, se escogen las variables City, Total, Product.l
 En base a este conjunto de variables se realizarán dos modelos de aprendizaje de máquinas: Modelo Random Forest y Modelo KNN. Luego también se utilizará el modelo de regresión lineal para comparar la capacidad que tienen los diferentes tipos de modelo.
 
 #### Modelo Random Forest:
-```{r p2rf}
+```{r p3rf}
 ### Ejecutar Random Forest
 train.randomf <- train(Rating ~ City + log(Total) + Time  + Product.line 
                      +Customer.type+City*Gender*Weekday,
@@ -514,7 +524,7 @@ Al correr este modelo se obtiene que el resultado que entrega menos errores en l
 
 #### Modelo KNN
 Para esto se obtiene k óptimo igual a 11
-```{r p2knn}
+```{r p3knn}
 ### Ejecutar KNN
 
 train.knn <- train(Rating ~ City + log(Total) + Time  + Product.line 
