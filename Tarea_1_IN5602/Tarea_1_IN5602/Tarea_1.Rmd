@@ -515,16 +515,6 @@ coef(Lasso2)
 Este modelo Lasso entrega muchas constantes significativas, en comparación al modelo de regresión lineal que solo entregaba 2 constantes con alta significancia. Para este caso, el modelo Lasso si considera significativas las mismas 2 constantes de la regresión lineal, aunque los valores del modelo Lasso son más cercanos a cero. Sin embargo, el modelo Lasso entrega 10 otras constantes significativas, de las cuales solo 2 constantes son positivas. La razón de esto puede ser el valor de lambda, el cual tendría que ser mayor para funcionar de mejor manera.
 
 
-```{r P2_b.3}
-
-ventas_sin_rating <- subset(ventas, select = -c(Rating))
-
-LassoModel <- glmnet(ventas_sin_rating, ventas$Rating, alpha=1, lambda=0.03)
-coef(LassoModel)
-
-```
-
-
 #### Pregunta 3
 
 (1.0 puntos)Use al menos dos de los modelos de aprendizaje de máquinas que vimos en clases (MARS, kNN, regression tree, random forest) para generar un pronóstico de Rating de un cliente al realizar una compra y compare la capacidad de estos modelos con respecto a los de regresión lineal.
