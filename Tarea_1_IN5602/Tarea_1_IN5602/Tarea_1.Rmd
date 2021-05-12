@@ -89,6 +89,7 @@ Importamos las librerías a utilizar:
 ```{r Preparación, message = FALSE}
 #Exploración de datos
 library(tidyr)
+library(dplyr)
 library(gridExtra)
 library(lubridate)
 library(grid)
@@ -112,7 +113,7 @@ set.seed(1234)
 #path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
 path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
 #path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
-#setwd(path)
+setwd(path)
 ```
 
 Se importa la base de datos
@@ -641,33 +642,75 @@ Viendo más allá de las diferencias de los errores, para elegir un mejor modelo
  resultados entre sucursales. Discuta brevemente sus resultados.
 
 
-```{r P5_a}
-#Modelo Homogéneo con variables explicativas
-
-#Creamos las variables para cada tienda:
+```{r, fig.width=15, fig.height=45, include=FALSE}
 
 ventas <- ventas %>%
   mutate(Satisfecho = ifelse(Rating >= 7,1,0), Compras = 1)
 
-#Train - test
+genero <- unique(ventas$Gender)
+producto <- unique(ventas$Product.line)
+branch <- unique(ventas$Branch)
 
-ventas_train_A = ventas[ventas$Branch=="A",]  %>% sample_frac(0.7) #tomamos un 70% de las compras en sucursal A
-ventas_train_B = ventas[ventas$Branch=="B",]  %>% sample_frac(0.7) #tomamos un 70% de las compras en sucursal B
-ventas_train_C = ventas[ventas$Branch=="C",]  %>% sample_frac(0.7) #tomamos un 70% de las compras en sucursal C
+g <- vector("list", length = length(genero)*length(producto)*length(branch))
+#g = list()
 
-ventas_train_A_todo = ventas_train_A %>%
-  summarise(TR=sum(Satisfecho)/sum(Compras),
-            Y=sum(Satisfecho),
-            m=sum(Compras))
+i <- 0
+for (tienda in branch){
+  for (m_h in genero){
+    for (pr in producto){
+        
+        i <- i + 1
+        #print(paste(tienda, m_h, dia))
 
+        data <- ventas %>%
+          filter(Branch == tienda) %>%
+          filter(Gender == m_h) %>%
+          filter(Product.line == pr)
+          
+        train <- data %>% sample_frac(0.7)
+        
+        test <- anti_join(data, train, by="Invoice.ID")
+        
+        train_prob <- train %>%
+          summarise(TR=sum(Satisfecho)/sum(Compras),
+                    Y=sum(Satisfecho),
+                    m=sum(Compras))
+        
+        test_prob <- test %>%
+          summarise(TR=sum(Satisfecho)/sum(Compras),
+                    Y=sum(Satisfecho),
+                    m=sum(Compras))
+        
+        x_train <- seq(0,train_prob$m,by = 1)
+        y_train <- dbinom(x_train, train_prob$m, train_prob$TR)
+        x_train_norm <- x_train*100/train_prob$m
+        
+        x_test <- seq(0,test_prob$m,by = 1)
+        y_test <- dbinom(x_test, test_prob$m, test_prob$TR)
+        x_test_norm <- x_test*100/test_prob$m
+        
+        message(i)
+        g[[i]] <- local({
+          i <- i
+          plot <- ggplot()+
+            geom_line(aes(x=x_train_norm,y=y_train, colour='red'),  size=2)+
+            geom_line(aes(x=x_test_norm ,y=y_test , colour='blue'), size=2)+
+            theme(plot.title = element_text(hjust = 0.5))+
+            scale_color_discrete(name='Sets', labels = c("Train", "Test"))+
+            labs(x='Proporcion de clientes satisfechos (%)',
+               y='Probabilidad',
+               title=paste('Modelo de elección homogéneo - Tienda', tienda,
+                           ', Género:', m_h, '\n Linea de producto:', pr))
+          print(plot)
+          })
+    }
+  }
+}
 ```
 
-```{r}
-x <- seq(0,ventas_train_A_todo$m,by = 1)
-y <- dbinom(x, ventas_train_A_todo$m, ventas_train_A_todo$TR)
-plot(x,y)
+```{r, fig.width=15, fig.height=45}
+grid.arrange(grobs = g, ncol = 3)
 ```
-
 
 
 **b)**Estimar un modelo de decisión heterogéneo para cada sucursal y compare sus
