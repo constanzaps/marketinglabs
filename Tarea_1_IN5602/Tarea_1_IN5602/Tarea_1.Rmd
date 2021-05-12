@@ -449,7 +449,7 @@ En el set de variables *xtrain* se eliminaron algunas variables que estaban alta
 
 **R.:** El rating según los datos provistos por la cadena de supermercados, puede depender de 4 tipos de dimensiones: caracterización de la compra (dada por las variables *Gender*, *Payment*, *Total*, entre otras), zona geográfica de la compra (dada por las variables *Branch* y *City*), tipo de producto (dado por la variable *Product.line*, entre otras) y caracterización temporal (dada por las variables *Weekday*, *Time*, entre otras).
 
-En una primera regresión se propone un modelo de regresión lineal de interacción triple entre las variables City, Gender y Weekday. Es esperable pensar que el rating asignado por los clientes varíe en cada ciudad, por distintas razones incluso más allá de motivos relacionados a la tienda misma. Y de igual forma tiene sentido que los ratings sean distintos dependiendo del día de la semana en que se tome la muestra, esto último respaldado por el EDA realizado. Finalmente, en el EDA se encontraron diferencias con respecto al género, lo cual se busca estudiar más a detalle.
+En una primera regresión se propone un modelo de regresión lineal de interacción triple entre las variables *City*, *Gender* y *Weekday*. Es esperable pensar que el rating asignado por los clientes varíe en cada ciudad, por distintas razones incluso más allá de motivos relacionados a la tienda misma. Y de igual forma tiene sentido que los ratings sean distintos dependiendo del día de la semana en que se tome la muestra, esto último respaldado por el EDA realizado. Finalmente, en el EDA se encontraron diferencias con respecto al género, lo cual se busca estudiar más a detalle.
 
 En esta regresión se están estudiando efectos en 3 de las 4 dimensiones anteriormente señaladas: la caracterización de la compra, la zona geográfica y la caracterización temporal. El nivel de agregación fue escogido gracias a lo observado en gráficas al realizar el EDA, ya que en particular se observaron cambios en el rating según el día de la semana, al contrastarlo según género y ciudad.
 
@@ -467,19 +467,26 @@ En esta regresión se observa que, de manera significativa, el género femenino 
 
 Sin embargo, este es un efecto muy particular, al que se debe tener en cuenta. La regresión indica también que, en general, los miércoles y jueves el género femenino puntúa 2,609 y 1,781 puntos más bajo en el rating, respectivamente. Es más, en la ciudad de Yangon las mujeres puntúan en promedio un ranking de 1,593 puntos más bajo que el promedio, por lo que se debe estudiar más a fondo lo que sucede en las tiendas de Yangon y Naypyitaw los miércoles para contraarrestar la estadística.
 
-En una segunda regresión se propone un modelo de regresión lineal con interacción triple entre las variables Gender, Total y Weekday. En primer lugar, se presume que los clientes pueden tener distinto ánimo dependiendo del día de la semana en que se encuentren, lo que lleva a pensar a que la variable Weekday afecte de manera indirecta en el rating del cliente. Por otro lado, las personas pueden llevarse una sorpresa al revisar el valor total de la compra en su boleta, y esto afectará en el ranking otorgado por el consumidor. Finalmente, el EDA indica que interacciones de variables con el género del consumidor generan diferencias observables en los gráficos, por lo que es una variable interesante de estudio.
+En una segunda regresión se propone un modelo de regresión lineal con interacción triple entre las variables *Gender*, *Payment* y *Weekday*. Tal como se señaló para la regresión anterior, las emociones de las personas varían según el día de la semana, y esto puede afectar al rating. De igual manera el género afecta al ranking, como se observó en la regresión anterior. Finalmente, se agrega el tipo de pago debido a que se desea analizar si este tiene un efecto en el ranking, el cual puede deberse a deficiencias en las tecnologías dispuestas para el pago y que puedan afectar la satisfacción del cliente.
+
+En esta regresión se están estudiando efectos en 2 de las 4 dimensiones anteriormente señaladas: la caracterización de la compra y una caracterización temporal. El nivel de agregación escogido se debe a un gráfico realizado con anterioridad en el EDA, en donde se observan cambios en el rating al comparar por estas 3 variables simultáneamente. 
 
 ```{r P2_a.2}
 
 #lm2 <- lm(Rating ~ Product.line*dia, data = ventas)
 #lm2 <- lm(Rating ~ Gender*Payment*dia , data=ventas) #regresión lineal 2 con datos
-#lm2 <- lm(Rating ~ Product.line*Weekday*Payment, data=ventas)
+lm2 <- lm(Rating ~ Gender*Weekday*Payment, data=ventas)
 
-lm2 <- lm(Rating ~ Gender*log(Total)*Weekday, data=ventas) #regresión lineal 2 con datos
+#lm2 <- lm(Rating ~ Gender*log(Total)*Weekday, data=ventas) #regresión lineal 2 con datos
 
 summary(lm2)
 
 ```
+
+Esta regresión entrega pocos datos interesantes con alta significancia. Según esta regresión lineal, los domingos el género femenino puntúa en promedio un rating 1,413 más bajo. También se puede decir que los clientes que pagan con tarjeta de crédito los sábados tienen un nivel de satisfacción mayor, lo cual se ve reflejado en un aumento de 1,925 puntos en el rating.
+
+Como conclusión de las regresiones lineales, se debe estudiar la razón de que en algunos días de la semana las clientas punteen más bajo en el rating, en particular en la tienda de Yangon. También se debe analizar con más detalle la receta de las tiendas de Yangon y Naypyitaw para mejorar el rating señalado por las clientas los días miércoles.
+
 
 **b)** Sobre los dos modelos planteados en la parte anterior, aplique un método de selección automática de variables y compare respecto a los resultados anteriores.
 
@@ -499,13 +506,13 @@ Las constantes entregadas por el modelo Lasso varían bastante con respecto a la
 
 ```{r P2_b.2}
 
-interaccion_lm2 <- model.matrix(~Gender*Weekday*log(Total), data=ventas)
+interaccion_lm2 <- model.matrix(~Gender*Weekday*Payment, data=ventas)
 
 Lasso2 <- glmnet(interaccion_lm2, ventas$Rating, alpha=1, lambda=0.05)
 coef(Lasso2)
 
 ```
-
+Este modelo Lasso entrega muchas constantes significativas, en comparación al modelo de regresión lineal que solo entregaba 2 constantes con alta significancia. Para este caso, el modelo Lasso si considera significativas las mismas 2 constantes de la regresión lineal, aunque los valores del modelo Lasso son más cercanos a cero. Sin embargo, el modelo Lasso entrega 10 otras constantes significativas, de las cuales solo 2 constantes son positivas. La razón de esto puede ser el valor de lambda, el cual tendría que ser mayor para funcionar de mejor manera.
 
 
 ```{r P2_b.3}
