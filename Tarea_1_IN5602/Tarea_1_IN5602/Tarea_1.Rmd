@@ -105,6 +105,7 @@ library(glmnet)
 library(MLmetrics)
 library(inspectdf)
 library(plyr)
+library(reshape2)
 set.seed(1234)
 
 ```
@@ -640,8 +641,7 @@ Finalmente se puede confirmar que el mejor modelo para determinar el rating es e
  resultados entre sucursales. Discuta brevemente sus resultados.
 
 
-```{r, fig.width=15, fig.height=45, include=FALSE}
-
+```{r, fig.width=20, fig.height=20}
 ventas <- ventas %>%
   mutate(Satisfecho = ifelse(Rating >= 7,1,0), Compras = 1)
 
@@ -649,66 +649,61 @@ genero <- unique(ventas$Gender)
 producto <- unique(ventas$Product.line)
 branch <- unique(ventas$Branch)
 
-g <- vector("list", length = length(genero)*length(producto)*length(branch))
-#g = list()
+g <- list()
 
 i <- 0
 for (tienda in branch){
   for (m_h in genero){
     for (pr in producto){
-        
-        i <- i + 1
-        #print(paste(tienda, m_h, dia))
-
-        data <- ventas %>%
-          filter(Branch == tienda) %>%
-          filter(Gender == m_h) %>%
-          filter(Product.line == pr)
+      #print(paste(tienda, m_h, dia))
+      
+      i <- i + 1
+      data <- ventas %>%
+        filter(Branch == tienda) %>%
+        filter(Gender == m_h) %>%
+        filter(Product.line == pr)
           
-        train <- data %>% sample_frac(0.7)
+      train <- data %>% sample_frac(0.7)
         
-        test <- anti_join(data, train, by="Invoice.ID")
+      test <- anti_join(data, train, by="Invoice.ID")
         
-        train_prob <- train %>%
-          summarise(TR=sum(Satisfecho)/sum(Compras),
+      train_prob <- train %>%
+        summarise(TR=sum(Satisfecho)/sum(Compras),
                     Y=sum(Satisfecho),
                     m=sum(Compras))
         
-        test_prob <- test %>%
-          summarise(TR=sum(Satisfecho)/sum(Compras),
+      test_prob <- test %>%
+        summarise(TR=sum(Satisfecho)/sum(Compras),
                     Y=sum(Satisfecho),
                     m=sum(Compras))
-        
-        x_train <- seq(0,train_prob$m,by = 1)
-        y_train <- dbinom(x_train, train_prob$m, train_prob$TR)
-        x_train_norm <- x_train*100/train_prob$m
-        
-        x_test <- seq(0,test_prob$m,by = 1)
-        y_test <- dbinom(x_test, test_prob$m, test_prob$TR)
-        x_test_norm <- x_test*100/test_prob$m
-        
-        message(i)
-        g[[i]] <- local({
-          i <- i
-          plot <- ggplot()+
-            geom_line(aes(x=x_train_norm,y=y_train, colour='red'),  size=2)+
-            geom_line(aes(x=x_test_norm ,y=y_test , colour='blue'), size=2)+
-            theme(plot.title = element_text(hjust = 0.5))+
-            scale_color_discrete(name='Sets', labels = c("Train", "Test"))+
-            labs(x='Proporcion de clientes satisfechos (%)',
-               y='Probabilidad',
+
+      x_test <- seq(0,test_prob$m,by = 1)
+      
+      y_pred <- dbinom(x_test, test_prob$m, train_prob$TR)
+      
+      y_test <- dbinom(x_test, test_prob$m, test_prob$TR)
+      
+      x_norm <- x_test
+      
+      df_binomial <- data.frame(y_pred, y_test, x_norm)
+      
+      d <- melt(df_binomial, id.vars="x_norm")
+      d <- drop_na(d)
+      
+      plot <- ggplot(d, aes(x_norm,value, col=variable))+
+        geom_line(size=1)+
+        labs(x='Clientes satisfechos',y='Probabilidad',
                title=paste('Modelo de elección homogéneo - Tienda', tienda,
                            ', Género:', m_h, '\n Linea de producto:', pr))
-          print(plot)
-          })
+      g[[i]] <- plot
     }
   }
 }
+
+grid.arrange(grobs = g, ncol = 4)
 ```
 
-```{r, fig.width=15, fig.height=45}
-grid.arrange(grobs = g, ncol = 3)
-```
+
 
 
 **b)**Estimar un modelo de decisión heterogéneo para cada sucursal y compare sus
@@ -717,8 +712,92 @@ grid.arrange(grobs = g, ncol = 3)
  
 ```{r p5_b}
 #Modelo Heterogéno con variables explicativas
+
+n = length(genero) * length(branch) * length(producto)
+
+data_segmentos <- data.frame(matrix(ncol = 4, nrow = 0))
+x <- c("ms", "xs", "Tipo", "Nombre")
+colnames(data_segmentos) <- x
+
+for (tienda in branch){
+  for (m_h in genero){
+    for (pr in producto){
+      
+      data <- ventas %>%
+        filter(Branch == tienda) %>%
+        filter(Gender == m_h) %>%
+        filter(Product.line == pr)
+          
+      train <- data %>% sample_frac(0.7)
+        
+      test <- anti_join(data, train, by="Invoice.ID")
+        
+      train_prob <- train %>%
+        summarise(xs=sum(Satisfecho),
+                    ms=sum(Compras)) %>%
+        mutate(Tipo = 'Train',
+               Nombre = paste(tienda, m_h, pr, sep = "--"))
+        
+      test_prob <- test %>%
+        summarise(xs=sum(Satisfecho),
+                    ms=sum(Compras)) %>%
+        mutate(Tipo = 'Test',
+               Nombre = paste(tienda, m_h, pr, sep = "--"))
+      
+      data <- rbind(train_prob, test_prob)
+      data_segmentos <- rbind(data_segmentos, data)
+    }
+  }
+}
+
+data_segmentos$id <- as.numeric(as.factor(data_segmentos$Nombre))
+
+data_train <- data_segmentos %>%
+  filter(Tipo == 'Train') %>%
+  arrange(id)
+
+data_test <- data_segmentos %>%
+  filter(Tipo == 'Test') %>%
+  arrange(id)
 ```
  
+ 
+```{r}
+ll.bb <-function(theta){
+  myalpha = exp(theta[1])
+  mybeta  = exp(theta[2])
+  pr = array(NA, dim=nrow(data_train))
+  for(i in 1:nrow(data_train)){
+    pr[i] = with(data_train, choose(ms[i],xs[i])*beta(myalpha+xs[i],mybeta+ms[i]-xs[i]) / beta(myalpha,mybeta))
+  }
+  return(-sum(log(pr)))
+}
+
+
+theta.start = rep(6,3)
+cat("Maximizing likelihood beta binomial ... \n")
+mle.bb = optim(par=theta.start, fn=ll.bb, hessian=TRUE, method="BFGS", control = list(maxit=30000, trace=TRUE, REPORT=10))
+myalpha = exp(mle.bb$par[1])
+mybeta  = exp(mle.bb$par[2])
+print(c(myalpha, mybeta))
+
+
+ep = array(NA, dim=nrow(data_test))
+for(i in 1:nrow(data_test)){
+  ep[i] = with(data_test, (myalpha+xs[i])/(myalpha+mybeta+ms[i]))
+}
+data_test$Ep <- ep
+```
+```{r}
+
+m=10
+x <- seq(from = 0, to = m, by = 0.01)
+beta <- dbeta(x, myalpha, mybeta)
+
+ep <- (myalpha+x)/(myalpha+mybeta+m)
+plot(x, ep)
+```
+
 ## Resumen y Conclusiones
 
 Documenta acá el resumen y las conclusiones principales (esto te servirá para la presentación del jueves 6)
