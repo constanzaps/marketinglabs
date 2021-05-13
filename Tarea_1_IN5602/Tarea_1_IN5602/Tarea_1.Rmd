@@ -111,8 +111,8 @@ set.seed(1234)
 ```
 
 ```{r, include = FALSE}
-path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
-#path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
+#path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
+path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
 #path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
 setwd(path)
 ```
@@ -614,11 +614,13 @@ Finalmente se puede confirmar que el mejor modelo para determinar el rating es e
 **a)**Estimar un modelo de decisión homogéneo para cada sucursal y compare sus
  resultados entre sucursales. Discuta brevemente sus resultados.
 
-
-```{r, fig.width=20, fig.height=20}
+Para segmentar a los clientes se diferencia por 2 variables: *Gender* y *Product line*, esto además de diferenciar por tienda. De esta forma se construyen indicadores de satisfacción que muestren la cantidad de clientes que pertenecen a dicho segmento y la cantidad de clientes satifechos en ese grupo. 
+Aplicando los conocimientos de distribuciones binomiales, se construye un modelo homogéneo para cada grupo, con tal de obtener una probabilidad __p__ de que un cliente esté satisfecho dado el segmento al cual pertenece.
+```{r, fig.width=20, fig.height=25, dpi=200}
 ventas <- ventas %>%
   mutate(Satisfecho = ifelse(Rating >= 7,1,0), Compras = 1)
 
+#Creamos variables
 genero <- unique(ventas$Gender)
 producto <- unique(ventas$Product.line)
 branch <- unique(ventas$Branch)
@@ -666,19 +668,17 @@ for (tienda in branch){
       
       plot <- ggplot(d, aes(x_norm,value, col=variable))+
         geom_line(size=1)+
-        labs(x='Clientes satisfechos',y='Probabilidad',
+        labs(x='Clientes satisfechos',y='Probabilidad', color='Sets',
                title=paste('Modelo de elección homogéneo - Tienda', tienda,
-                           ', Género:', m_h, '\n Linea de producto:', pr))
+                           ', Género:', m_h, '\n Linea de producto:', pr))+
+        theme(plot.title = element_text(hjust = 0.5))
       g[[i]] <- plot
     }
   }
 }
 
-grid.arrange(grobs = g, ncol = 4)
+grid.arrange(grobs = g, ncol = 3)
 ```
-
-
-
 
 **b)**Estimar un modelo de decisión heterogéneo para cada sucursal y compare sus
  resultados entre sucursales. Discuta brevemente sus resultados.
@@ -755,21 +755,51 @@ myalpha = exp(mle.bb$par[1])
 mybeta  = exp(mle.bb$par[2])
 print(c(myalpha, mybeta))
 
-
-ep = array(NA, dim=nrow(data_test))
-for(i in 1:nrow(data_test)){
-  ep[i] = with(data_test, (myalpha+xs[i])/(myalpha+mybeta+ms[i]))
-}
-data_test$Ep <- ep
 ```
+
 ```{r}
+ll.bb <-function(theta){
+  myalpha = exp(theta[1])
+  mybeta  = exp(theta[2])
+  pr = array(NA, dim=nrow(data_test))
+  for(i in 1:nrow(data_test)){
+    pr[i] = with(data_test, choose(ms[i],xs[i])*beta(myalpha+xs[i],mybeta+ms[i]-xs[i]) / beta(myalpha,mybeta))
+  }
+  return(-sum(log(pr)))
+}
 
-m=10
-x <- seq(from = 0, to = m, by = 0.01)
-beta <- dbeta(x, myalpha, mybeta)
 
-ep <- (myalpha+x)/(myalpha+mybeta+m)
-plot(x, ep)
+theta.start = rep(6,3)
+cat("Maximizing likelihood beta binomial ... \n")
+mle.bb = optim(par=theta.start, fn=ll.bb, hessian=TRUE, method="BFGS", control = list(maxit=30000, trace=TRUE, REPORT=10))
+alpha_t = exp(mle.bb$par[1])
+beta_t  = exp(mle.bb$par[2])
+print(c(alpha_t, beta_t))
+
+```
+
+```{r, fig.width=10, fig.height=5, dpi=500}
+p_train <- vector("list", nrow(data_test))
+p_test  <- vector("list", nrow(data_test))
+
+for(i in 1:nrow(data_test)){
+  p_train[i] <- with(data_test, choose(ms[i],xs[i]) * beta(myalpha + xs[i], mybeta + ms[i] - xs[i]) / beta(myalpha, mybeta))
+  p_test[i] <- with(data_test, choose(ms[i],xs[i]) * beta(alpha_t + xs[i], beta_t + ms[i] - xs[i]) / beta(alpha_t, beta_t))
+}
+
+data_test$test <- p_test
+data_test$train <- p_train
+
+data_plot <- data_test %>%
+  select(id, test, train)
+
+data_plot2 <- gather(data_plot, key, value, -id)
+
+ggplot(data_plot2, aes(x = factor(id), y=as.numeric(value), colour=key))+
+  geom_pointrange(aes(ymin=as.numeric(value)-0.001,ymax=as.numeric(value)+0.001), size=1)+
+  labs(x='Segmento', y='Probabilidad', title = 'Probabilidades de Satisfacción de clientes por segmento: Beta Binomial', color='Sets')+
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 ## Resumen y Conclusiones
@@ -778,10 +808,74 @@ Documenta acá el resumen y las conclusiones principales (esto te servirá para 
 
 #### Pregunta 6
 
-```{r P6}
-#Resumen y conclusiones
+El trabajo se inició con realizando una exploración de datos, donde a simple vista se ve una base de datos equitativamente distribuida para todas las variables. En particular para la variable de interés, rating, no se distingía un efecto interesante, pues parecía que para cualquier otra variable distribuía de manera uniforme.
 
+```{r, fig.width=10, fig.height=6, echo=FALSE}
+g1 <- ggplot(ventas) +
+  aes(y=Rating, x=Total) +
+  geom_point(size=3, alpha=0.4, colour = "blue")+
+  geom_smooth(method='lm', se=FALSE, colour='red', size = 2) +
+  scale_x_log10() +
+  labs(y="Satisfacción", x="log(Total)", title="Satisfacción en relación al log(Total)")+
+  theme(plot.title = element_text(hjust = 0.5))
+
+ g2 <- ggplot(ventas) +
+  aes(y=Rating, x=Quantity) +
+  geom_point(size=3, alpha=0.4, colour = "blue")+
+  geom_smooth(method='lm', se=FALSE, colour='red', size = 2)+
+  labs(y='Satisfacción', x='Quantity', title='Satisfacción en relación a Quantity')+
+   theme(plot.title = element_text(hjust = 0.5))+
+   scale_x_continuous(breaks=1:10)
+
+g3 <- ggplot(ventas) +
+  aes(y=Rating, x=Unit.price) +
+  geom_point(size = 3, alpha = .4, colour='blue') + 
+  geom_smooth(method = "lm", se = FALSE, size=2, colour='red')+
+  labs(y='Satisfacción', x='Precio unitario', title = 'Satisfacción en relación a Unit price')+
+  theme(plot.title = element_text(hjust = 0.5))
+
+  
+g4 <- ggplot(ventas) +
+  aes(y=Rating, x=Time) +
+  geom_point(size = 3, alpha = .4, colour='blue') + 
+  geom_smooth(method = "lm", se = FALSE, size=3, colour='red')+
+  labs(x='Hora del día', y='Satisfacción', title='Satisfacción según la hora del día')+
+  theme(plot.title = element_text(hjust = 0.5))
+
+grid.arrange(g1, g2,g3, g4,nrow = 2) #une las  gráficas. 
 ```
+
+Luego, al realizar interacciones dobles se lograron percibir algunos efectos, pero estos no parecían lo suficientemente notables. Luego de ello se decide realizar interacciones triples entre variables, lo cual da resultados mucho más interesantes, como lo observado en el siguiente gráfico:
+
+
+```{r, fig.width=16, fig.height=5, echo= FALSE}
+ggplot(ventas, aes(x=City, y=Rating, fill = City))+
+  geom_boxplot()+
+  facet_grid(Gender ~ Weekday)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x='Ciudad', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y la ciudad')
+```
+
+En este se puede observar que las mujeres suelen entregar mejor rating algunos días de la semana, sin embargo los miercoles y jueves cae en comparación del género masculino. Este efecto es particularmente fuerte en la ciudad de Mandalay. 
+
+```{r, fig.width=16, fig.height=5, echo= FALSE}
+ggplot(ventas, aes(x=Payment, y=Rating, fill = Payment))+
+  geom_boxplot()+
+  facet_grid(Gender~ Weekday)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x='Tipo de pago', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y tipo de pago')
+```
+
+
+Nuevamente se ve afectado el rating al realizar triples interacciones entre las variables Payment, Gender y Weekday, donde se puede observar que los miércoles y los jueves varía el tipo de pago según género, y los días sádados los hombres que pagan con efectivo califican peor. Esto se confirmará más adelante con las regresiones lineales.
+
+En base a este análisis se realizan dos regresiones que incluyen estas interacciones. Esto entrega resultados coherentes al EDA, con significancia en las relaciones mencionadas.
+
+En particular la regresión que tiene las variables **City*Gender*Weekday** se observa que, de manera significativa, el género femenino puntúa un rating de satisfacción mayor, específicamente aumentando el rating en 1,337. Este efecto se intensifica los días miércoles en las ciudades de Yangon y Naypyitaw, en donde el rating femenino es 3,237 y 2,720 puntos más alto, respectivamente.
+
+Sin embargo, este es un efecto muy particular, al que se debe tener en cuenta. La regresión indica también que, en general, los miércoles y jueves y domingos el género femenino puntúa 2,609, 1,781 y 1,413 puntos más bajo en el rating, respectivamente. Es más, en la ciudad de Yangon las mujeres puntúan en promedio un ranking de 1,593 puntos más bajo que el promedio, por lo que se debe estudiar más a fondo lo que sucede en las tiendas de Yangon y Naypyitaw los miércoles para contraarrestar la estadística. 
+
+Con estas variables elegidas se realizan dos modelos de machine learning: Random Forest, y KNN. Entre estos, y comparando con la regresión lineal, el modelo Random Forest es el que presenta el menor error para las métricas RMSE (1.698) y MAE (1.444), por lo cual el mejor modelo predictivo para el rating sería Random Forest. Esta decisión de modelo se confirma al entender como trabaja el modelo de random forest, separando en árboles de decisión que es análogo a las interacciones que se encontraron tan relevantes para explicar el rating en el EDA.
 
 ## Anexos
 
