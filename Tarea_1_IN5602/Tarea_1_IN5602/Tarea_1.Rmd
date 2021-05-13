@@ -112,8 +112,8 @@ set.seed(1234) #fija semilla para data train y test
 
 ```{r, include = FALSE}
 #path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
-#path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
-path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
+path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
+#path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
 setwd(path)
 ```
 
@@ -620,7 +620,8 @@ Finalmente se puede confirmar que el mejor modelo para determinar el rating es e
 
 Para segmentar a los clientes se diferencia por 2 variables: *Gender* y *Product line*, esto además de diferenciar por tienda. De esta forma se construyen indicadores de satisfacción que muestren la cantidad de clientes que pertenecen a dicho segmento y la cantidad de clientes satifechos en ese grupo. 
 Aplicando los conocimientos de distribuciones binomiales, se construye un modelo homogéneo para cada grupo, con tal de obtener una probabilidad __p__ de que un cliente esté satisfecho dado el segmento al cual pertenece.
-```{r, fig.width=20, fig.height=25, dpi=200}
+
+```{r, fig.width=20, fig.height=25}
 ventas <- ventas %>%
   mutate(Satisfecho = ifelse(Rating >= 7,1,0), Compras = 1)
 
@@ -684,10 +685,14 @@ for (tienda in branch){
 grid.arrange(grobs = g, ncol = 3)
 ```
 
+
+En las gráficas anteriores se puede ver que en la mayoría de los segmentos la distribución binomial ajusta de muy buena forma el comportamiento de elección de los clientes. Cabe recalcar que la proporción de clientes satisfechos en cada grupo era muy cercana al 50%, salvo casos excepcionales, por lo cual cada distribución binomial tiene una proabilidad cercana a 0.5.
+
+
 **b)**Estimar un modelo de decisión heterogéneo para cada sucursal y compare sus
  resultados entre sucursales. Discuta brevemente sus resultados.
 
- 
+Ocupando el mismo razonamiento que la parte anterior, se construye un dataframe con todos los segmentos posibles, además de métricas de interés como: Cantidad de Clientes y Cantidad de Clientes Satisfechos. Dada estas nuevas variables, se construye un modelo heterogénero con un distribución Beta-Binomial de parámetros *alpha* y *beta*. 
 ```{r p5_b}
 #Modelo Heterogéno con variables explicativas
 
@@ -739,7 +744,7 @@ data_test <- data_segmentos %>%
   arrange(id)
 ```
  
- 
+La obtención de *alpha* y *beta* resulta por el método de Máxima Verosimilitud. Se obtiene un *alpha* y *beta* para los set de entranmiento y testeo para despues comparar sus probabilidades.
 ```{r}
 ll.bb <-function(theta){
   myalpha = exp(theta[1])
@@ -752,7 +757,7 @@ ll.bb <-function(theta){
 }
 
 
-theta.start = rep(6,3)
+theta.start = rep(1,5)
 cat("Maximizing likelihood beta binomial ... \n")
 mle.bb = optim(par=theta.start, fn=ll.bb, hessian=TRUE, method="BFGS", control = list(maxit=30000, trace=TRUE, REPORT=10))
 myalpha = exp(mle.bb$par[1])
@@ -773,7 +778,7 @@ ll.bb <-function(theta){
 }
 
 
-theta.start = rep(6,3)
+theta.start = rep(1,5)
 cat("Maximizing likelihood beta binomial ... \n")
 mle.bb = optim(par=theta.start, fn=ll.bb, hessian=TRUE, method="BFGS", control = list(maxit=30000, trace=TRUE, REPORT=10))
 alpha_t = exp(mle.bb$par[1])
@@ -782,6 +787,7 @@ print(c(alpha_t, beta_t))
 
 ```
 
+Se grafican las probabilidades obtenidas dado cada segmento. El segmento de testeo muestra la probabilidad
 ```{r, fig.width=10, fig.height=5, dpi=500}
 p_train <- vector("list", nrow(data_test))
 p_test  <- vector("list", nrow(data_test))
@@ -794,8 +800,11 @@ for(i in 1:nrow(data_test)){
 data_test$test <- p_test
 data_test$train <- p_train
 
+data_test <- data_test %>%
+  mutate(prob = xs/ms)
+
 data_plot <- data_test %>%
-  select(id, test, train)
+  select(id, test, train, prob)
 
 data_plot2 <- gather(data_plot, key, value, -id)
 
@@ -805,6 +814,7 @@ ggplot(data_plot2, aes(x = factor(id), y=as.numeric(value), colour=key))+
   theme_minimal()+
   theme(plot.title = element_text(hjust = 0.5))
 ```
+La probabilidad obtenida con el set de testeo es casi siempre muy similar a la del set de entrenamiento, pero estas no se asemejan mucho a la probabilidad experimental de los datos (casos favorables / casos totales). En comparación al modelo homogéneo, el rendimiento de la beta binomial en muy inferior y no ajusta bien las probabildidades en cada caso. Es muy posible que al diferenciar por tantos segmentos de clientes las muestras sean poco representativas de cada grupo.
 
 ## Resumen y Conclusiones
 
@@ -885,26 +895,72 @@ Al comparar los resultados de los modelos con el modelo Lasso de autoselección,
 
 Con estas variables elegidas se realizan dos modelos de Machine Learning: Random Forest, y KNN. Entre estos, y comparando con la regresión lineal, el modelo Random Forest es el que presenta el menor error para las métricas RMSE (1.698) y MAE (1.444), por lo cual este es el mejor modelo predictivo para el rating. Esta decisión de modelo se confirma al entender cómo trabaja el modelo de Random Forest, separando en árboles de decisión que es análogo a las interacciones que se encontraron tan relevantes para explicar el rating en el EDA.
 
-## Anexos
+Con respecto a los modelos probabilísticos, se utilizó una caracterización homogénea y heterogénea para estimar la variable de decisión de cada segmento de clientes, pero dada la naturaleza del fenómeno de declarar satisfaccion, siempre será un desafío ajustar dicho evento mediante un modelo.
 
-Documenta acá cualquier otro adicional que consideres útil tener de referencia. 
+En este caso, el modelo homogéneo (distribución binomial) modela la probabilidad de satisfacción de mejor forma que el modelo heterogéneo (beta-binomial) en la mayoría de los casos; esto se debe a que tal como se presentó anteriormente, la satisfacción pareciera no depender de las variables que se presentan en el dataset. Además, dado que la proporción de satisfechos y no satisfechos era casi siempre un 50% para cada segmento, era altamente posible que la probabilidad obtenida de los modelos fuera cercana a dicho valor, lo cual ocurrió con la caracterización homogénea.
 
-#### Pregunta X
+En métodos generales, se comprende la gran dificultad que existe al tratar de entender y modelar los comportamientos de distintos clientes con las herramientas que se han obtenido en el curso. Dicha complejidad no proviene directamente de la aplicación de los modelos, sino que de el dataset entregado. Esto reafirma una vez más que el modelar fenómenos reales es mucho más complejo que los modelos que se han visto en gran parte de la carrera universitaria y que requieren un mayor entendimiento del problema como de un conocimiento técnico que permita abordar y resolver dicha problemática de forma efectiva.
 
-```{r PX}
+```{r, fig.width=9, fig.height=3, echo=FALSE}
+ventas <- ventas %>%
+  mutate(Satisfecho = ifelse(Rating >= 7,1,0), Compras = 1)
 
+#Creamos variables
+genero <- unique(ventas$Gender)
+producto <- unique(ventas$Product.line)
+branch <- unique(ventas$Branch)
+
+g <- list()
+
+i <- 0
+for (tienda in branch){
+  for (m_h in genero){
+    for (pr in producto){
+      #print(paste(tienda, m_h, dia))
+      
+      i <- i + 1
+      data <- ventas %>%
+        filter(Branch == tienda) %>%
+        filter(Gender == m_h) %>%
+        filter(Product.line == pr)
+          
+      train <- data %>% sample_frac(0.7)
+        
+      test <- anti_join(data, train, by="Invoice.ID")
+        
+      train_prob <- train %>%
+        summarise(TR=sum(Satisfecho)/sum(Compras),
+                    Y=sum(Satisfecho),
+                    m=sum(Compras))
+        
+      test_prob <- test %>%
+        summarise(TR=sum(Satisfecho)/sum(Compras),
+                    Y=sum(Satisfecho),
+                    m=sum(Compras))
+
+      x_test <- seq(0,test_prob$m,by = 1)
+      
+      y_pred <- dbinom(x_test, test_prob$m, train_prob$TR)
+      
+      y_test <- dbinom(x_test, test_prob$m, test_prob$TR)
+      
+      x_norm <- x_test
+      
+      df_binomial <- data.frame(y_pred, y_test, x_norm)
+      
+      d <- melt(df_binomial, id.vars="x_norm")
+      d <- drop_na(d)
+      
+      plot <- ggplot(d, aes(x_norm,value, col=variable))+
+        geom_line(size=1)+
+        labs(x='Clientes satisfechos',y='Probabilidad', color='Sets',
+               title=paste('Modelo de elección homogéneo - Tienda', tienda,
+                           ', Género:', m_h, '\n Linea de producto:', pr))+
+        theme(plot.title = element_text(hjust = 0.5))
+      g[[i]] <- plot
+    }
+  }
+}
+
+print(g[[4]])
 ```
-
-#### Pregunta Y
-
-```{r PY}
-
-```
-
-#### Pregunta Z
-
-```{r PZ}
-
-```
-
-

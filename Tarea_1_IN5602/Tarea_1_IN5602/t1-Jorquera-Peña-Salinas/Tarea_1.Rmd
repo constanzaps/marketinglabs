@@ -1,0 +1,966 @@
+<div style="text-align: right"> **Universidad de Chile**</div>
+<div style="text-align: right"> **Ingeniería Industrial**</div>
+<div style="text-align: right"> **IN5602**: Marketing II</div>
+<div style="text-align: right">**Prof**: Marcel Goic</div>
+<div style="text-align: right">**Auxs**: R. Cerda, JP. Coddou, G.Mora, F. Moraga, A .Muñoz</div>
+
+
+---
+title:  'Tarea 1 - Semestre Otoño 2021'
+author: 'Felipe Jorquera D., Constanza Peña S., Matías Salinas M.'
+date:   '05 de mayo de 2021'
+output:
+  html_document:
+    df_print: paged
+    theme: simplex
+    highlight: tango
+    toc: no
+encoding: UTF-8
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# {.tabset}
+## Enunciado
+El canal moderno de supermercados ha crecido sostenidamente en todo el mundo y especialmente en los países en desarrollo. En esta tarea exploraremos el comportamiento de compras en una cadena de supermercados en Asia. Para estos efectos, “Supermerca2” ha provisto con información de ventas para tres de sus sucursales (A), (B) y (C) las cuales tienen sedes en las ciudades de Yangon, Mandalay y Naypyidaw respectivamente, en el lejano país de Birmania. “Supermerca2” vende productos de todo tipo, desde accesorios de moda hasta artículos de hogar y estilo de vida. Adicionalmente, la cadena posee un club de lealtad en que los clientes frecuentes pueden registrar sus compras al momento de la compra y así acceder a beneficios posteriormente. 
+
+Entre otras preguntas, “Supermerca2” está interesado en entender la satisfacción de sus clientes y así poder decidir sobre qué clientes enfocar los esfuerzos de ventas. En particular, en esta tarea nos concentraremos en entender qué factores afectan el Rating de un cliente, que corresponde a un puntaje en una escala de 10 puntos que indica el grado de satisfacción en la experiencia de compra. El estudio de la satisfacción de los clientes es relevante ya que por un lado nos permite identificar si ciertas salas del supermercado podrían estar entregando un servicio insatisfactorio y por otro nos entrega una señal temprana para saber la probabilidad de que un cliente haga una compra a futuro. En este sentido, la evaluación de la calidad de servicio podría ser informativa respecto al comportamiento de compra futuro.
+
+Para el análisis dispone de una base de datos con una muestra de 1000 compras. El conjunto de datos es uno de los históricos de ventas de la empresa en donde se han registrado IDs de diferentes facturas en sus 3 sucursales durante las horas del día en que atienden. Además, se tienen registros del género del cliente, el precio y la cantidad del producto comprado, la forma de pago, entre otras.
+
+La base de datos está disponible en <https://www.kaggle.com/aungpyaeap/supermarket-sales>, donde además puede acceder a un diccionario de datos con una descripción de cada una de las variables disponibles en la base de datos.
+
+#### **Preguntas**
+
+1. (0 puntos) Explore los datos para entender la satisfacción de los clientes y qué variables podrían ayudar a predecir cuando un cliente está más satisfecho.
+
+2. (2.0 puntos) Usando los aprendizajes derivados de la exploración de datos, use un enfoque de regresión lineal para examinar cuantitativamente qué factores determinan la satisfacción al momento de realizar una compra.
+
+  + a) Proponga al menos dos especificaciones alternativas para el objetivo propuesto. Justifique muy brevemente por que las variables que está incluyendo en el modelo tienen sentido desde el punto de vista del negocio. Justifique además el nivel de agregación escogido y los índices considerados en el modelo.
+
+  + b) Sobre los dos modelos planteados en la parte anterior, aplique un método de selección automática de variables y compare respecto a los resultados anteriores.
+
+3. (1.0 puntos) Use al menos dos de los modelos de aprendizaje de máquinas que vimos en clases (MARS, kNN, regression tree, random forest) para generar un pronóstico de Rating de un cliente al realizar una compra y compare la capacidad de estos modelos con respecto a los de regresión lineal.
+
+4. (0.5 puntos) Compare las fortalezas y debilidades de los modelos anteriores, evalúe de acuerdo a algunas de las métricas que vimos en clases y discuta qué modelo recomendaría usar.
+
+5. (2.0 puntos) En esta parte, se compararán los grados de satisfacción entre las distintas salas de la cadena de supermercados. Para lo siguiente usted deberá clasificar cada evaluación de la calidad de servicios de acuerdo a si el cliente está o no satisfecho. Para eso puede considerar que un cliente está satisfecho si tiene un Rating mayor o igual a los 7 puntos. Con esto:
+
+  + a) Estimar un modelo de decisión homogéneo para cada sucursal y compare sus
+ resultados entre sucursales. Discuta brevemente sus resultados.
+
+  + b) Estimar un modelo de decisión heterogéneo para cada sucursal y compare sus
+ resultados entre sucursales. Discuta brevemente sus resultados.
+
++ _Observación: Recuerde que la variable utilizada es entera._
+
+6. (0.5 puntos) Resuma sus aprendizajes principales en un máximo de 4 tablas o figuras. Redacte de manera concisa sus resultados tal como los reportaría al departamento comercial interesado en aprender del comportamiento de clientes. Agregue cualquier conclusión o idea que le parezca relevante de comunicar.
+
+#### **Reglas del juego** 
+
+- Las tareas buscan replicar parcialmente las labores a las que se enfrentarían en el análisis de datos en una organización para el apoyo en la toma de decisiones. Por esto, se han propuesto preguntas relativamente abiertas que requieren que ustedes discutan y decidan cual es el mejor enfoque de solución. Les pedimos que se involucren tempranamente en el desarrollo de la tarea para tener una discusión enriquecedora. 
+
+- Todas las dudas, comentarios y errores publicarlos exclusivamente en el foro de u-cursos. De esta forma todos se benefician de las respuestas ofrecidas. 
+
+- Consideramos que es muy importante que logren escribir un informe conciso con una redacción acorde de un informe técnico profesional, los análisis y las conclusiones que obtengan de cada pregunta es en específico lo que debe declararse. La presentación y comunicación de resultados es parte integral de la tarea y por tanto será evaluada cuidadosamente. 
+
+- La tarea se desarrolla en grupos de máximo 3 integrantes. No hay excepciones. El entregable principal es un único markdown separado en tres tabs (a través de la opción .tabset). En el primer tab incluya todo el desarrollo de la tarea adecuadamente comentado. El segundo tab incluya el resumen de sus resultado de acuerdo a lo pedido en la pregunta 6. Este segundo tab es el que usarán en caso de que les corresponda presentar sus resultados. Considere el tercer tab como de anexos y puede incluir aquí cualquier resultado complementario. Para entregar sus resultados suba vía u-cursos un único archivo comprimido llamado t1-A1-A2-A3.zip, donde A1, A2 y A3 es el primer apellido de los integrantes del grupo. Incluya tanto el archivo .html de salida del markdown como los códigos fuentes que permitan reproducir sus resultados. 
+
+- Para la pregunta 6 consideramos que 4 figuras son suficientes para resumir los aprendizajes más relevantes, pero si están convencidos de que agregar una figura adicional es absolutamente necesaria, ¡adelante! 
+
+- La fecha de entrega de la tarea es el día miércoles 5 de Mayo a las 09:00 hrs, sin excepciones y no habrá plazo extra para la entrega. Si por algún motivo de fuerza mayor se ve imposibilitado de entregar la tarea en el plazo estipulado, deberá escribir directamente al profesor explicando su situación. El profesor decidirá el curso de acción de acuerdo a los méritos del caso. 
+
+- Recuerde que tenemos contempladas dos sesiones de presentaciones de las tareas. La primera sesión, a realizarse el día jueves 29 de Abril, está destinada a que compartan sus avances y podamos identificar de manera conjunta cuáles podrían ser dificultades técnicas que requieran orientación adicional. La segunda sesión, a realizarse el día jueves 6 de Mayo, está destinada para que expongan los resultados más relevantes de su trabajo y resuman sus principales aprendizajes, para que tanto los compañeros como el equipo docente puedan proveer retroalimentación. Todos los grupos deben estar disponibles para presentar en ambas ocasiones, pero si hay grupos voluntarios se les dará preferencia. Las presentaciones tendrán una duración máxima de 10 minutos y no es necesario que preparen material adicional. Esperamos que la salida del markdown sea lo suficientemente explicativa para comunicar sus resultados. 
+
+- El equipo docente considera que la copia de tareas atenta en contra de tu aprendizaje y por tanto aplicará todas las medidas que estén a su disposición para desincentivar esta mala práctica. 
+
+## Preliminares
+
+Escribe acá todos los comandos que necesitas ejecutar antes de abordar las preguntas de la tarea (carga de librerías, lectura de datos, limpieza de la data, transformación de variables y todo lo que necesites)
+
+#### Preparación Tarea
+
+Importamos las librerías a utilizar:
+
+```{r Preparación, message = FALSE, warning=FALSE}
+#Exploración de datos
+library(tidyr)
+library(dplyr)
+library(gridExtra)
+library(lubridate)
+library(grid)
+library(ggplot2)
+library(GGally)
+library(psych)
+library(corrplot)
+library(ggpubr)
+library(ggrepel)
+library(caret)
+library(knitr) 
+library(glmnet)
+library(MLmetrics)
+library(inspectdf)
+library(plyr)
+library(reshape2)
+set.seed(1234) #fija semilla para data train y test
+
+```
+
+```{r, include = FALSE}
+#path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
+path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
+#path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
+setwd(path)
+```
+
+Se importa la base de datos
+```{r}
+ventas <- read.csv("supermarket_sales.csv")
+```
+
+
+```{r, echo=FALSE}
+print(paste('Las dimensiones de los datos son:', dim(ventas)[1], 'filas y', dim(ventas)[2], 'columnas.'))
+print(paste('El dataframe posee:',sum(is.na(ventas)), 'datos vacíos.'))
+str(ventas)
+```
+
+Transformamos las variables a un formato correspondiente al tipo de dato que representan:
+```{r}
+#Transformamos la variable "género" a binaria
+ventas$Gender[ventas$Gender=="Female"]<-1
+ventas$Gender[ventas$Gender=="Male"]<-0
+ventas$Gender<-as.factor(ventas$Gender)
+
+#Transformamos "Branch", "City" y "Product line" a factor:
+ventas$Branch <- as.factor(ventas$Branch)
+ventas$City <- as.factor(ventas$City)
+ventas$Product.line <- as.factor(ventas$Product.line)
+ventas$Payment <- as.factor(ventas$Payment)
+
+#Transformamos la variable "Customer type" a binaria
+ventas$Customer.type[ventas$Customer.type=="Member"]<-1
+ventas$Customer.type[ventas$Customer.type=="Normal"]<-0
+ventas$Customer.type<-as.factor(ventas$Customer.type)
+
+
+#Transformamos y creamos nuevas variables temporales (dia, hora, fecha)
+ventas$Date <- as.Date(ventas$Date, format='%m/%d/%Y')
+ventas$Date_time <- as.POSIXct(paste(ventas$Date, ventas$Time), format="%Y-%m-%d %H:%M")
+ventas$Time <- as.POSIXct(ventas$Time, format="%H:%M")
+ventas$Weekday <- weekdays(ventas$Date)
+ventas$Weekday = factor(ventas$Weekday, levels=c('lunes','martes','miércoles','jueves', 'viernes', 'sábado', 'domingo'))
+ventas$Hour_num <- hour(ventas$Time) + minute(ventas$Time)/60
+ventas$dia<-format(as.Date(ventas$Date,format="%Y-%m-%d"), format = "%d")
+
+str(ventas)
+```
+
+## Desarrollo
+
+Documenta acá el desarrollo de tu tarea por pregunta.
+
+#### Pregunta 1
+
+(0 puntos) Explore los datos para entender la satisfacción de los clientes y qué variables podrían ayudar a predecir cuando un cliente está más satisfecho.
+
+**R.:** Se analiza la composición de la base de datos con la función __summary__:
+```{r P1, echo=FALSE}
+summary(ventas)
+```
+
+Las variables categóricas tienen una distribución similar entre sus distintos valores, por lo que no hay un gran desbalance entre clases. Además, dado que la variable *gross.margin.percentage* no posee varianza alguna (su mínimo y máximo son iguales), se concluye que no aporta información al problema y debe ser eliminada. Sobre las otras variables númericas, a simple vista los percentiles parecen indicar que no hay outliers de gran magnitud en las variables. Para confirmar este supuesto se realiza un histograma para cada variable numérica:
+
+```{r, fig.width=11, fig.height=8, dpi=300, echo=FALSE}
+cogs <- ggplot(ventas, aes(x=cogs, fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'cogs', y = 'Cantidad', title = 'cogs: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+gross.income <- ggplot(ventas, aes(x=gross.income, fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'Gross Income', y = 'Count', title = 'Gross Income: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+hour_plot <- ggplot(ventas, aes(x=Hour_num, fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'Hora del Día', y = 'Count', title = 'Hour_num: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+quan_plot <- ggplot(ventas, aes(x=Quantity, fill=..count..))+
+  geom_histogram(bins= 10)+
+  labs(x = 'Número de productos comprados', y = 'Count', title = 'Quantity: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))+
+  scale_x_continuous(breaks=1:10)
+
+rating_plot <- ggplot(ventas, aes(x=Rating, fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'Rating', y = 'Count', title = 'Rating: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+tax5_plot <- ggplot(ventas, aes(x=Tax.5., fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'Tax 5%', y = 'Count', title = 'Tax 5%: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+total_plot <- ggplot(ventas, aes(x=Total, fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'Total de compra', y = 'Count', title = 'Total: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+up_plot <- ggplot(ventas, aes(x=Unit.price, fill=..count..))+
+  geom_histogram(bins= 30)+
+  labs(x = 'Precio unitario', y = 'Count', title = 'Unit price: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+figure <- ggarrange(cogs, hour_plot, gross.income, quan_plot, tax5_plot, rating_plot,
+                    total_plot, up_plot,
+                    ncol = 2, nrow = 4)
+figure
+```
+
+Los histogramas de las variables *cogs, gross.income, Tax 5% y Total* son muy similares entre si, por lo cual puede existir un problema de correlación.
+
+A través de un diagrama de correlaciones se puede visualizar la relación existente entre las variables numéricas:
+```{r, fig.width=11, fig.height=4, echo= FALSE}
+nums <- ventas[ ,unlist(lapply(ventas, is.numeric))] #variables numéricas
+nums$gross.margin.percentage <- NULL #Quitamos la variable constante
+ggcorr(nums,  label = TRUE, label_color = "white", high='#000080',
+       low = '#827839', mid = '#6D7B8D')
+```
+Se observa que *Rating* tiene correlación 0 con todas las demás variables, y varias variables tienen correlación 1, esto debido a que las variables *Tax 5%, cogs y gross income* son un porcentaje de la variable *Total*. Dicha correlación se tendrá en cuenta al correr los modelos de las preguntas siguientes.
+
+Respecto a las variables tipo *character*, se puede obtener una muestra aleatoria para observar de qué trata cada una. En particular notando que *City*, *Payment*, *Gender*, *Branch* y *Customer.type* son formas claras de categorizar clientes y zona geográfica de las ventas.
+
+Viendo las variables no numéricas:
+```{r, fig.width=10, fig.height=8, dpi=500, echo=FALSE}
+
+branch_plot <- ggplot(ventas, aes(x=Branch, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Supermercado', y = 'Count', title = 'Branch: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+city_plot <- ggplot(ventas, aes(x=City, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Ciudad', y = 'Count', title = 'City: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+ctype_plot <- ggplot(ventas, aes(x=Customer.type, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Tipo de consumidor', y = 'Count', title = 'Customer type: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+gender_plot <- ggplot(ventas, aes(x=Gender, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Género', y = 'Count', title = 'Gender: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+pay_plot <- ggplot(ventas, aes(x=Payment, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Medio de pago', y = 'Count', title = 'Payment: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+prod_plot <- ggplot(ventas, aes(y=Product.line, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Categoría del producto', y = 'Count', title = 'Product line: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+day_plot <- ggplot(ventas, aes(x=Weekday, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Día de la semana', y = 'Count', title = 'Weekday: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+figure <- ggarrange(prod_plot, ggarrange(branch_plot, city_plot, ctype_plot,
+                                         gender_plot, pay_plot, day_plot, nrow=3, ncol=2),
+                    ncol = 2)
+figure
+
+```
+
+Con ello se puede observar que la mayoría de estas categorías están repartidas con igual porcentaje dentro de la base de datos, siendo la excepción las fechas, donde existen algunos días de la semana más frecuentes que otros. Otro dato interesante es que las tiendas tienen una distribución similar a la variable *City*. Para explorar aún más su relación, se genera el siguiente barplot:
+
+```{r, fig.width=4, fig.height=4, dpi=100, echo=FALSE}
+ggplot(ventas, aes(x=City, fill = Branch))+
+  geom_bar()+
+  labs(title = 'Relación City-Branch: Barplot')+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Lo anterior indica que la ciudad de Yangon tiene el supermercado A, la ciudad Mandalay tiene al supermercado B y los centros C están unicamente en Naypyitaw. Dado lo anterior, hablar sobre *Branch* o *City* será equivalente desde ahora en adelante.
+
+
+Ahora, si se analiza cómo se comportan las variables en función de la satisfacción, se pueden ver los siguientes gráficos respecto a las variables numéricas, donde se observa que la satisfacción se comporta de manera equitativa para todos los valores de la variable númerica y no emerge ninguna relación aparente.
+```{r, fig.width=10, fig.height=6, echo=FALSE}
+g1 <- ggplot(ventas) +
+  aes(y=Rating, x=Total) +
+  geom_point(size=3, alpha=0.4, colour = "blue")+
+  geom_smooth(method='lm', se=FALSE, colour='red', size = 2) +
+  scale_x_log10() +
+  labs(y="Satisfacción", x="log(Total)", title="Satisfacción en relación al log(Total)")+
+  theme(plot.title = element_text(hjust = 0.5))
+
+ g2 <- ggplot(ventas) +
+  aes(y=Rating, x=Quantity) +
+  geom_point(size=3, alpha=0.4, colour = "blue")+
+  geom_smooth(method='lm', se=FALSE, colour='red', size = 2)+
+  labs(y='Satisfacción', x='Quantity', title='Satisfacción en relación a Quantity')+
+   theme(plot.title = element_text(hjust = 0.5))+
+   scale_x_continuous(breaks=1:10)
+
+g3 <- ggplot(ventas) +
+  aes(y=Rating, x=Unit.price) +
+  geom_point(size = 3, alpha = .4, colour='blue') + 
+  geom_smooth(method = "lm", se = FALSE, size=2, colour='red')+
+  labs(y='Satisfacción', x='Precio unitario', title = 'Satisfacción en relación a Unit price')+
+  theme(plot.title = element_text(hjust = 0.5))
+
+  
+g4 <- ggplot(ventas) +
+  aes(y=Rating, x=Time) +
+  geom_point(size = 3, alpha = .4, colour='blue') + 
+  geom_smooth(method = "lm", se = FALSE, size=3, colour='red')+
+  labs(x='Hora del día', y='Satisfacción', title='Satisfacción según la hora del día')+
+  theme(plot.title = element_text(hjust = 0.5))
+
+grid.arrange(g1, g2,g3, g4,nrow = 2) #une las  gráficas. 
+```
+
+Se analiza el comportamiento de la satisfacción con respecto a otras variables relevantes mediante los siguientes gráficos:
+
+```{r, fig.width=11, fig.height=8, echo= FALSE}
+g1 <- ggplot(ventas, aes(y=Rating, x=Weekday, fill=Weekday))+
+  geom_boxplot(alpha=0.4)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(y='Satisfacción', x='Día', title='Satisfacción con respecto al día')
+
+g2 <- ggplot(ventas, aes(y=Rating, x=Product.line, fill = Product.line))+
+  geom_boxplot(alpha=0.4)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(y='Satisfacción', x='Tipo de producto', title='Satisfacción con respecto al tipo de producto')
+
+g3 <- ggplot(ventas, aes(y=Rating, x=Branch, fill = Branch))+
+  geom_boxplot(alpha=0.4)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(y='Satisfacción', x='Tienda', title='Satisfacción con respecto a la tienda')
+
+g4 <- ggplot(ventas, aes(y=Rating, x=Gender, fill = Gender))+
+  geom_boxplot(alpha=0.4)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(y='Satisfacción', x='Género', title='Satisfacción según el género')
+
+g5 <- ggplot(ventas, aes(y=Rating, x=Payment, fill = Payment))+
+  geom_boxplot(alpha=0.4)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(y='Satisfacción', x='Medio de pago', title='Satisfacción según el medio de pago')
+
+fig <- ggarrange(g3, ggarrange(g4, g5, ncol = 2), g1, g2, nrow=4)
+fig
+```
+A simple vista no existen relaciones muy marcadas entre las comparaciones. Según los gráficos, la tienda con menor nivel de Rating es la tienda B, además, los días con menor satisfacción son los Miércoles, Jueves y Sábados. Sobre los productos, *Sports and travel* y *Electronic accessories* poseen el menor nivel de satisfacción. Con respecto al género del cliente, no se muestran diferencias marcadas de satisfacción, tampoco sobre el medio de pago.
+
+Dado que analizar únicamente la interacción de una variable no arroja resultados muy evidentes, se generan boxplot que reunan algunas combinaciones de variables para poder explicar al *Rating*.
+
+```{r, fig.width=16, fig.height=5, echo= FALSE}
+ggplot(ventas, aes(x=City, y=Rating, fill = City))+
+  geom_boxplot()+
+  facet_grid(Gender ~ Weekday)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x='Ciudad', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y la ciudad')
+```
+
+De esta interacción se observan varios resultados interesantes: las mujeres suelen entregar mejor rating algunos días de la semana, sin embargo los miércoles y jueves cae en comparación del género masculino. Este efecto es particularmente fuerte y visible en la ciudad de Mandalay los miércoles.
+
+```{r, fig.width=16, fig.height=5, echo= FALSE}
+ggplot(ventas, aes(x=Payment, y=Rating, fill = Payment))+
+  geom_boxplot()+
+  facet_grid(Gender~ Weekday)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x='Tipo de pago', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y tipo de pago')
+```
+
+Se puede observar que los miércoles y los jueves varía el tipo de pago según género, y los días sábados los hombres que pagan con efectivo tienen un nivel de satisfacción peor.
+
+```{r, fig.width=11, fig.height=3, echo=FALSE}
+g <- ggplot(ventas, aes(y=Total, fill=factor(Branch))) + geom_boxplot(alpha=0.4)+ facet_grid(.~Product.line)
+g
+```
+En este se puede observar que la tienda C es la que tiene más ganancias,y la tienda asociada a la marca B vende poco en *Fashion accesories*.
+
+```{r, fig.width=6, fig.height=4, echo=FALSE}
+g <- ggplot(ventas, aes(y=Rating, fill=factor(City))) + geom_boxplot(alpha=0.4)+ facet_grid(Gender~City)
+g
+```
+
+Con esta interacción se puede observar que el rating cambia ligeramente en promedio al realizar la interacción ciudad y género.
+
+```{r, fig.width=8, fig.height=4, echo=FALSE}
+g3 <- ggplot(ventas, aes(x=Rating, fill=factor(Gender))) + geom_density(alpha=0.4)+
+  facet_wrap(.~Product.line, ncol = 3)
+g3
+```
+
+Finalmente, aunque las diferencias de segmentos no son muy notables dado lo equilibrados que son los datos de las ventas, si existen diferencias que salen a la luz de realizar interacciones de variables lo cual vale tener en cuenta para el estudio.
+
+Como se mencionó anteriormente, hay variables que tienen una correlación perfecta o que no tienen varianza alguna. La presencia de estos factores puede afectar de manera significativa el desarrolllo de las preguntas siguientes, por lo que serán eliminadas.
+
+```{r, echo=FALSE}
+ventas <- subset(ventas, select = -c(gross.margin.percentage, gross.income, Tax.5.,cogs,Date_time,Date))
+head(ventas)
+```
+
+
+
+#### Pregunta 2
+
+(2.0 puntos) Usando los aprendizajes derivados de la exploración de datos, use un enfoque de regresión lineal para examinar cuantitativamente qué factores determinan la satisfacción al momento de realizar una compra.
+
+```{r, echo=FALSE}
+# Construimos un vector que esta formado por números de filas aleatoriamente
+index <- sample(1:nrow(ventas), size= nrow(ventas)*0.7)
+
+# Base de entrenamiento: del total de datos, tomamos las filas aletorizadas que tienen datos en index
+train <- ventas[index, ]
+
+# Anteponiendo el "-" escogemos las filas en de la base que no están en index
+xtrain <- subset(train, select = -c(Rating))
+ytrain <- train$Rating
+
+# Se quitan variables correlacionadas
+test  <- ventas[-index, ]
+xtest <- subset(test, select = -c(Rating))
+ytest <- test$Rating
+```
+
+Para comenzar esta sección, se crea un *train set* y un *test set*, con una proporción de 70%:30%.
+En el set de variables *xtrain* se eliminó la variable a predecir, *Rating*.
+
+
+**a)** Proponga al menos dos especificaciones alternativas para el objetivo propuesto. Justifique muy brevemente por que las variables que está incluyendo en el modelo tienen sentido desde el punto de vista del negocio. Justifique además el nivel de agregación escogido y los índices considerados en el modelo.
+
+**R.:** El rating según los datos provistos por la cadena de supermercados, puede depender de 4 tipos de dimensiones: caracterización de la compra (dada por las variables *Gender*, *Payment*, *Total*, entre otras), zona geográfica de la compra (dada por las variables *Branch* y *City*), tipo de producto (dado por la variable *Product.line*, entre otras) y caracterización temporal (dada por las variables *Weekday*, *Time*, entre otras).
+
+En una primera regresión se propone un modelo de regresión lineal de interacción triple entre las variables *City*, *Gender* y *Weekday*. Es esperable pensar que el rating asignado por los clientes varíe en cada ciudad, por distintas razones incluso más allá de motivos relacionados a la tienda misma. Y de igual forma tiene sentido que los ratings sean distintos dependiendo del día de la semana en que se tome la muestra, esto último respaldado por el EDA realizado. Finalmente, en el EDA se encontraron diferencias con respecto al género, lo cual se busca estudiar más a detalle.
+
+En esta regresión se están estudiando efectos en 3 de las 4 dimensiones anteriormente señaladas: la caracterización de la compra, la zona geográfica y la caracterización temporal. El nivel de agregación fue escogido gracias a lo observado en gráficas al realizar el EDA, ya que en particular se observaron cambios en el rating según el día de la semana, al contrastarlo según género y ciudad.
+
+
+```{r P2_a.1, echo=FALSE}
+lm1 <- lm(Rating ~ City*Gender*Weekday, data=ventas) #regresión lineal 1 con datos
+summary(lm1)
+
+```
+
+En esta regresión se observa que, de manera significativa, el género femenino puntúa un rating de satisfacción mayor, específicamente aumentando el rating en 1,337. Este efecto se intensifica los días miércoles en las ciudades de Yangon y Naypyitaw, en donde el rating femenino es 3,237 y 2,720 puntos más alto, respectivamente.
+
+Sin embargo, este es un efecto muy particular, al que se debe tener en cuenta. La regresión indica también que, en general, los miércoles y jueves el género femenino puntúa 2,609 y 1,781 puntos más bajo en el rating, respectivamente. Es más, en la ciudad de Yangon las mujeres puntúan en promedio un ranking de 1,593 puntos más bajo que el promedio, por lo que se debe estudiar más a fondo lo que sucede en las tiendas de Yangon y Naypyitaw los miércoles para contrarrestar la estadística.
+
+En una segunda regresión se propone un modelo de regresión lineal con interacción triple entre las variables *Gender*, *Payment* y *Weekday*. Tal como se señaló para la regresión anterior, las emociones de las personas varían según el día de la semana, y esto puede afectar al rating. De igual manera el género afecta al rating, como se observó en la regresión anterior. Finalmente, se agrega el tipo de pago debido a que se desea analizar si este tiene un efecto en el rating, el cual puede deberse a deficiencias en las tecnologías dispuestas para el pago y que puedan afectar la satisfacción del cliente.
+
+En esta regresión se están estudiando efectos en 2 de las 4 dimensiones anteriormente señaladas: la caracterización de la compra y una caracterización temporal. El nivel de agregación escogido se debe a un gráfico realizado con anterioridad en el EDA, en donde se observan cambios en el rating al comparar por estas 3 variables simultáneamente. 
+
+```{r P2_a.2, echo=FALSE}
+lm2 <- lm(Rating ~ Gender*Weekday*Payment, data=ventas)
+summary(lm2)
+
+```
+
+Esta regresión entrega pocos datos interesantes con alta significancia. Según esta regresión lineal, los domingos el género femenino puntúa en promedio un rating 1,413 más bajo. También se puede decir que los clientes que pagan con tarjeta de crédito los sábados tienen un nivel de satisfacción mayor, lo cual se ve reflejado en un aumento de 1,925 puntos en el rating.
+
+Como conclusión de las regresiones lineales, se debe estudiar la razón de que en algunos días de la semana las clientas punteen más bajo en el rating, en particular en la tienda de Yangon. También se debe analizar con más detalle la receta de las tiendas de Yangon y Naypyitaw para mejorar el rating señalado por las clientas los días miércoles.
+
+
+**b)** Sobre los dos modelos planteados en la parte anterior, aplique un método de selección automática de variables y compare respecto a los resultados anteriores.
+
+**R.:** El método de selección adecuado para este caso es **Lasso**. Para esto, primero se crea una matriz con las interacciones respectivas en cada regresión para poder entregarle esto a la función *glmnet* y que el algoritmo funcione, con un lambda igual a 0,05. 
+
+```{r P2_b.1, echo=FALSE}
+
+interaccion_lm1 <- model.matrix(~City*Gender*Weekday, data=ventas) #se crea matriz con interacciones
+
+Lasso1 <- glmnet(interaccion_lm1, ventas$Rating, alpha=1, lambda=0.05) #modelo Lasso de autoselección
+coef(Lasso1) #impresión de coeficientes
+
+```
+
+Las constantes entregadas por el modelo Lasso varían bastante con respecto a las entregadas por la regresión lineal. Por ejemplo, el día miércoles por sí solo no era significativo en la regresión lineal mientras que según el modelo Lasso (con lambda igual a 0,05) sí lo es. También la interacción entre el género femenino y la ciudad Yangon, que según la regresión lineal es significativa pero según el modelo Lasso no lo es.
+
+
+```{r P2_b.2, echo=FALSE}
+interaccion_lm2 <- model.matrix(~Gender*Weekday*Payment, data=ventas) #se crea matriz con interacciones
+
+Lasso2 <- glmnet(interaccion_lm2, ventas$Rating, alpha=1, lambda=0.05) #modelo Lasso de autoselección
+coef(Lasso2) #impresión de coeficientes
+```
+
+Este modelo Lasso entrega muchas constantes significativas, en comparación al modelo de regresión lineal que solo entregaba 2 constantes con alta significancia. Para este caso, el modelo Lasso si considera significativas las mismas 2 constantes de la regresión lineal, aunque los valores del modelo Lasso son más cercanos a cero. Sin embargo, el modelo Lasso entrega 10 otras constantes significativas, de las cuales solo 2 constantes son positivas. La razón de esto puede ser el valor de lambda, el cual tendría que ser mayor para funcionar de mejor manera.
+
+
+
+#### Pregunta 3
+
+(1.0 puntos)Use al menos dos de los modelos de aprendizaje de máquinas que vimos en clases (MARS, kNN, regression tree, random forest) para generar un pronóstico de Rating de un cliente al realizar una compra y compare la capacidad de estos modelos con respecto a los de regresión lineal.
+
+**R.:** En base a lo observado en las regresiones, se escogen las variables *City*, *Gender*, *Weekday* y *Payment* pues fueron variables que Lasso dió como significativas y van coherentes a nuestros modelos. Además se escoge la interacción que entregó resultados más interesantes de las que se usaron en el EDA y la regresión, es decir *City*, *Gender* y *Weekday*.
+
+En base a este conjunto de variables se realizarán dos modelos de aprendizaje de máquinas: *Modelo Random Forest* y *Modelo KNN*. Luego también se utilizará el modelo de regresión lineal para comparar la capacidad que tienen los diferentes tipos de modelo.
+
+##### Modelo Random Forest:
+```{r p3rf, echo=FALSE}
+### Ejecutar Random Forest
+train.randomf <- train(Rating ~ City + Gender + Weekday + Payment
+                       +City*Gender*Weekday,
+                   data=train, method="rf",  
+                       trControl = trainControl("cv", number=10),
+                       preProcess = c("center","scale"),
+                       tuneLength = 5 
+)
+
+print(train.randomf)
+
+ggplot(train.randomf)
+test.randomf  <- predict(train.randomf, newdata=test) 
+error.randomf <- test$Rating-test.randomf
+```
+Al correr este modelo se obtiene que el resultado que minimiza el error es un modelo de 2 variables.
+
+
+##### Modelo KNN
+
+```{r p3knn, echo=FALSE}
+train.knn <- train(Rating ~ City + Gender + Weekday + Payment
+                       +City*Gender*Weekday, 
+                   data=train, method="knn",  
+                   trControl = trainControl("cv", number=15),
+                   preProcess = c("center","scale"),
+                   tuneLength = 5 
+)
+
+print(train.knn)
+ggplot(train.knn)
+test.knn  <- predict(train.knn, newdata=test) 
+error.knn <- test$Rating-test.knn
+```
+Al correr este modelo se obtiene que el resultado que entrega menos errores en la predicción es un modelo con 13 nodos, es decir, 13 clasificaciones de datos.
+
+
+##### Regresión lineal
+```{r p3regrl, echo=FALSE}
+### Ejecutar KNN
+
+train.lm <- train(Rating ~ City + Gender + Weekday + Payment
+                       +City*Gender*Weekday,
+                   data=train, method="lm",  
+                   trControl = trainControl("cv", number=15),
+                   preProcess = c("center","scale"),
+                   tuneLength = 5 
+)
+
+print(train.lm)
+test.lm  <- predict(train.lm, newdata=test) 
+error.lm <- test$Rating-test.lm
+```
+
+Para comparar la capacidad de los modelos de machine learning frente a la regresión lineal es necesario recordar que estos modelos son muy útiles cuando el foco del problema está en el pronótico de relaciones complejas y no lineales,. En cambio, las regresiones lineales son muy útiles para entender la relación de las variables con los componentes de la regresión. 
+
+En base a ese razonamiento, para el enfoque teórico sería más útil realizar una regresión lineal que un modelo de Machine Learning, con el objetivo de entender cómo afectan las variables al Rating. Sin embargo al ser los de Machine Learning modelos mucho más complejos que pueden observar relaciones no lineales, estos suelen dar mejores resultados en capacidad predictiva.
+
+Para comprobar esto se pueden comparar los errores de los modelos ML versus la regresión lineal, observándose los siguientes resultados:
+
+```{r P3e1, echo=FALSE}
+#RSME
+ventas.test <- data.frame(  knn=test.knn,  rf=test.randomf,lm=test.lm, ventas=ytest)# agregar lm=test.lm,
+error.test <- data.frame( knn=error.knn, rf=error.randomf,lm=error.lm)#agregar lm=error.lm, 
+
+summary(abs(error.test))
+```
+
+```{r P3e2, echo=FALSE}
+summary(error.test)
+```
+
+
+```{r P3e3, echo=FALSE}
+boxplot(abs(subset(error.test))); title(main="ML models", sub="Forecasting Absolute Errors")
+```
+
+
+```{r P3e4, echo=FALSE}
+boxplot(subset(error.test)); title(main="ML models", sub="Forecasting Errors")#, select=-lm
+```
+
+En general se ve que los errores son menores para los modelos de Machine Learning, en particular para el de random forest, lo cual concuerda con la intuición de que estos tienen mejor capacidad predictiva para modelos más complejos, y servirían mejor para el objetivo de predecir el rating.
+
+
+#### Pregunta 4
+
+(0.5 puntos) Compare las fortalezas y debilidades de los modelos anteriores, evalúe de acuerdo a algunas de las métricas que vimos en clases y discuta qué modelo recomendaría usar.
+
+
+**R.:** Para comparar su capacidad predictiva es necesario recordar que el modelo Random Forest es el que presenta el menor error para las métricas RMSE (1.698) y MAE (1.444), pero el modelo de regresión lineal es el que tiene mayor R^2, es decir, explica mejor la variabilidad de los datos. Sin embargo, el R^2 del Random Forest le sigue muy de cerca, y se puede observar en los boxplot de la pregunta anterior que este es el que tiene menor rango de errores, por lo cual el mejor modelo predictivo para el rating sería Random Forest.
+
+Viendo más allá de las diferencias de los errores, para elegir un mejor modelo se debe considerar el número de variables explicativas que implican. Claramente si se desea un modelo más sencillo se debe escoger Random Forest, el cual tiene como óptimo usar simplemente 2 variables. Si se desea crear un modelo más complejo sería mejor usar el modelo KNN que tiene más agrupaciones, es decir segmentos de clientes cercanos entre sí, los cuales pueden ser relevantes para lo que se desee explicar e interesantes de estudiar, sin embargo se obtiene un error un poco mayor en su predicción.
+
+Además se debe considerar la forma en que trabajan los modelos. El modelo KNN se basa en encontrar grupos de objetos similares, y luego usa el valor de respuesta media de k observaciones como el resultado previsto, en este caso dando k=13. El modelo de Random Forest es un conjunto de varios árboles de decisión que van agregando grupos para predecir cuál será el objetivo, esta agrupación hace que este tenga menos variabilidad al clasificar, y suele entregar mejores predicciones. Y el modelo de regresión lineal busca minimizar la distancia entre la regresión y los datos buscando un mejor ajuste, sin embargo no es capaz de encontrar relaciones más complejas. En esto se observa que el modelo más adecuado vuelve a ser el Random Forest, pues se ha verificado la importancia de la interacción entre variables para comprender el rating.
+
+Finalmente se puede confirmar que el mejor modelo para determinar el rating es el de Random Forest, pues cumple con minimizar el error y va clasificando según distintos parámetros hasta encontrar el rating esperado de cierto cliente, lo cual coincide con lo que hemos planteado en los modelos anteriores.
+
+
+
+#### Pregunta 5
+
+(2.0 puntos) En esta parte, se compararán los grados de satisfacción entre las distintas salas de la cadena de supermercados. Para lo siguiente usted deberá clasificar cada evaluación de la calidad de servicios de acuerdo a si el cliente está o no satisfecho. Para eso puede considerar que un cliente está satisfecho si tiene un Rating mayor o igual a los 7 puntos. Con esto:
+
+**a)**Estimar un modelo de decisión homogéneo para cada sucursal y compare sus
+ resultados entre sucursales. Discuta brevemente sus resultados.
+
+Para segmentar a los clientes se diferencia por 2 variables: *Gender* y *Product line*, esto además de diferenciar por tienda. De esta forma se construyen indicadores de satisfacción que muestren la cantidad de clientes que pertenecen a dicho segmento y la cantidad de clientes satifechos en ese grupo. 
+Aplicando los conocimientos de distribuciones binomiales, se construye un modelo homogéneo para cada grupo, con tal de obtener una probabilidad __p__ de que un cliente esté satisfecho dado el segmento al cual pertenece.
+
+```{r, fig.width=20, fig.height=25}
+ventas <- ventas %>%
+  mutate(Satisfecho = ifelse(Rating >= 7,1,0), Compras = 1)
+
+#Creamos variables
+genero <- unique(ventas$Gender)
+producto <- unique(ventas$Product.line)
+branch <- unique(ventas$Branch)
+
+g <- list()
+
+i <- 0
+for (tienda in branch){
+  for (m_h in genero){
+    for (pr in producto){
+      #print(paste(tienda, m_h, dia))
+      
+      i <- i + 1
+      data <- ventas %>%
+        filter(Branch == tienda) %>%
+        filter(Gender == m_h) %>%
+        filter(Product.line == pr)
+          
+      train <- data %>% sample_frac(0.7)
+        
+      test <- anti_join(data, train, by="Invoice.ID")
+        
+      train_prob <- train %>%
+        summarise(TR=sum(Satisfecho)/sum(Compras),
+                    Y=sum(Satisfecho),
+                    m=sum(Compras))
+        
+      test_prob <- test %>%
+        summarise(TR=sum(Satisfecho)/sum(Compras),
+                    Y=sum(Satisfecho),
+                    m=sum(Compras))
+
+      x_test <- seq(0,test_prob$m,by = 1)
+      
+      y_pred <- dbinom(x_test, test_prob$m, train_prob$TR)
+      
+      y_test <- dbinom(x_test, test_prob$m, test_prob$TR)
+      
+      x_norm <- x_test
+      
+      df_binomial <- data.frame(y_pred, y_test, x_norm)
+      
+      d <- melt(df_binomial, id.vars="x_norm")
+      d <- drop_na(d)
+      
+      plot <- ggplot(d, aes(x_norm,value, col=variable))+
+        geom_line(size=1)+
+        labs(x='Clientes satisfechos',y='Probabilidad', color='Sets',
+               title=paste('Modelo de elección homogéneo - Tienda', tienda,
+                           ', Género:', m_h, '\n Linea de producto:', pr))+
+        theme(plot.title = element_text(hjust = 0.5))
+      g[[i]] <- plot
+    }
+  }
+}
+
+grid.arrange(grobs = g, ncol = 3)
+```
+
+
+En las gráficas anteriores se puede ver que en la mayoría de los segmentos la distribución binomial ajusta de muy buena forma el comportamiento de elección de los clientes. Cabe recalcar que la proporción de clientes satisfechos en cada grupo era muy cercana al 50%, salvo casos excepcionales, por lo cual cada distribución binomial tiene una proabilidad cercana a 0.5.
+
+
+**b)**Estimar un modelo de decisión heterogéneo para cada sucursal y compare sus
+ resultados entre sucursales. Discuta brevemente sus resultados.
+
+Ocupando el mismo razonamiento que la parte anterior, se construye un dataframe con todos los segmentos posibles, además de métricas de interés como: Cantidad de Clientes y Cantidad de Clientes Satisfechos. Dada estas nuevas variables, se construye un modelo heterogénero con un distribución Beta-Binomial de parámetros *alpha* y *beta*. 
+```{r p5_b}
+#Modelo Heterogéno con variables explicativas
+
+n = length(genero) * length(branch) * length(producto)
+
+data_segmentos <- data.frame(matrix(ncol = 4, nrow = 0))
+x <- c("ms", "xs", "Tipo", "Nombre")
+colnames(data_segmentos) <- x
+
+for (tienda in branch){
+  for (m_h in genero){
+    for (pr in producto){
+      
+      data <- ventas %>%
+        filter(Branch == tienda) %>%
+        filter(Gender == m_h) %>%
+        filter(Product.line == pr)
+          
+      train <- data %>% sample_frac(0.7)
+        
+      test <- anti_join(data, train, by="Invoice.ID")
+        
+      train_prob <- train %>%
+        summarise(xs=sum(Satisfecho),
+                    ms=sum(Compras)) %>%
+        mutate(Tipo = 'Train',
+               Nombre = paste(tienda, m_h, pr, sep = "--"))
+        
+      test_prob <- test %>%
+        summarise(xs=sum(Satisfecho),
+                    ms=sum(Compras)) %>%
+        mutate(Tipo = 'Test',
+               Nombre = paste(tienda, m_h, pr, sep = "--"))
+      
+      data <- rbind(train_prob, test_prob)
+      data_segmentos <- rbind(data_segmentos, data)
+    }
+  }
+}
+
+data_segmentos$id <- as.numeric(as.factor(data_segmentos$Nombre))
+
+data_train <- data_segmentos %>%
+  filter(Tipo == 'Train') %>%
+  arrange(id)
+
+data_test <- data_segmentos %>%
+  filter(Tipo == 'Test') %>%
+  arrange(id)
+```
+ 
+La obtención de *alpha* y *beta* resulta por el método de Máxima Verosimilitud. Se obtiene un *alpha* y *beta* para los set de entranmiento y testeo para despues comparar sus probabilidades.
+```{r}
+ll.bb <-function(theta){
+  myalpha = exp(theta[1])
+  mybeta  = exp(theta[2])
+  pr = array(NA, dim=nrow(data_train))
+  for(i in 1:nrow(data_train)){
+    pr[i] = with(data_train, choose(ms[i],xs[i])*beta(myalpha+xs[i],mybeta+ms[i]-xs[i]) / beta(myalpha,mybeta))
+  }
+  return(-sum(log(pr)))
+}
+
+
+theta.start = rep(1,5)
+cat("Maximizing likelihood beta binomial ... \n")
+mle.bb = optim(par=theta.start, fn=ll.bb, hessian=TRUE, method="BFGS", control = list(maxit=30000, trace=TRUE, REPORT=10))
+myalpha = exp(mle.bb$par[1])
+mybeta  = exp(mle.bb$par[2])
+print(c(myalpha, mybeta))
+
+```
+
+```{r}
+ll.bb <-function(theta){
+  myalpha = exp(theta[1])
+  mybeta  = exp(theta[2])
+  pr = array(NA, dim=nrow(data_test))
+  for(i in 1:nrow(data_test)){
+    pr[i] = with(data_test, choose(ms[i],xs[i])*beta(myalpha+xs[i],mybeta+ms[i]-xs[i]) / beta(myalpha,mybeta))
+  }
+  return(-sum(log(pr)))
+}
+
+
+theta.start = rep(1,5)
+cat("Maximizing likelihood beta binomial ... \n")
+mle.bb = optim(par=theta.start, fn=ll.bb, hessian=TRUE, method="BFGS", control = list(maxit=30000, trace=TRUE, REPORT=10))
+alpha_t = exp(mle.bb$par[1])
+beta_t  = exp(mle.bb$par[2])
+print(c(alpha_t, beta_t))
+
+```
+
+Se grafican las probabilidades obtenidas dado cada segmento. El segmento de testeo muestra la probabilidad
+```{r, fig.width=10, fig.height=5, dpi=500}
+p_train <- vector("list", nrow(data_test))
+p_test  <- vector("list", nrow(data_test))
+
+for(i in 1:nrow(data_test)){
+  p_train[i] <- with(data_test, choose(ms[i],xs[i]) * beta(myalpha + xs[i], mybeta + ms[i] - xs[i]) / beta(myalpha, mybeta))
+  p_test[i] <- with(data_test, choose(ms[i],xs[i]) * beta(alpha_t + xs[i], beta_t + ms[i] - xs[i]) / beta(alpha_t, beta_t))
+}
+
+data_test$test <- p_test
+data_test$train <- p_train
+
+data_test <- data_test %>%
+  mutate(prob = xs/ms)
+
+data_plot <- data_test %>%
+  select(id, test, train, prob)
+
+data_plot2 <- gather(data_plot, key, value, -id)
+
+ggplot(data_plot2, aes(x = factor(id), y=as.numeric(value), colour=key))+
+  geom_pointrange(aes(ymin=as.numeric(value)-0.001,ymax=as.numeric(value)+0.001), size=1)+
+  labs(x='Segmento', y='Probabilidad', title = 'Probabilidades de Satisfacción de clientes por segmento: Beta Binomial', color='Sets')+
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+La probabilidad obtenida con el set de testeo es casi siempre muy similar a la del set de entrenamiento, pero estas no se asemejan mucho a la probabilidad experimental de los datos (casos favorables / casos totales). En comparación al modelo homogéneo, el rendimiento de la beta binomial en muy inferior y no ajusta bien las probabildidades en cada caso. Es muy posible que al diferenciar por tantos segmentos de clientes las muestras sean poco representativas de cada grupo.
+
+## Resumen y Conclusiones
+
+Documenta acá el resumen y las conclusiones principales (esto te servirá para la presentación del jueves 6)
+
+#### Pregunta 6
+
+El trabajo se inició realizando una exploración de datos, donde a simple vista se ve una base de datos equitativamente distribuida para todas las variables. En particular para la variable de interés, *Rating*, no se distinguía un efecto interesante, pues parecía que para cualquier otra variable distribuía de manera uniforme.
+
+```{r, fig.width=10, fig.height=6, echo=FALSE}
+g1 <- ggplot(ventas) +
+  aes(y=Rating, x=Total) +
+  geom_point(size=3, alpha=0.4, colour = "blue")+
+  geom_smooth(method='lm', se=FALSE, colour='red', size = 2) +
+  scale_x_log10() +
+  labs(y="Satisfacción", x="log(Total)", title="Satisfacción en relación al log(Total)")+
+  theme(plot.title = element_text(hjust = 0.5))
+
+ g2 <- ggplot(ventas) +
+  aes(y=Rating, x=Quantity) +
+  geom_point(size=3, alpha=0.4, colour = "blue")+
+  geom_smooth(method='lm', se=FALSE, colour='red', size = 2)+
+  labs(y='Satisfacción', x='Quantity', title='Satisfacción en relación a Quantity')+
+   theme(plot.title = element_text(hjust = 0.5))+
+   scale_x_continuous(breaks=1:10)
+
+g3 <- ggplot(ventas) +
+  aes(y=Rating, x=Unit.price) +
+  geom_point(size = 3, alpha = .4, colour='blue') + 
+  geom_smooth(method = "lm", se = FALSE, size=2, colour='red')+
+  labs(y='Satisfacción', x='Precio unitario', title = 'Satisfacción en relación a Unit price')+
+  theme(plot.title = element_text(hjust = 0.5))
+
+  
+g4 <- ggplot(ventas) +
+  aes(y=Rating, x=Time) +
+  geom_point(size = 3, alpha = .4, colour='blue') + 
+  geom_smooth(method = "lm", se = FALSE, size=3, colour='red')+
+  labs(x='Hora del día', y='Satisfacción', title='Satisfacción según la hora del día')+
+  theme(plot.title = element_text(hjust = 0.5))
+
+grid.arrange(g1, g2,g3, g4,nrow = 2) #une las  gráficas. 
+```
+
+Luego, al realizar interacciones dobles se lograron percibir algunos efectos, pero estos no parecían lo suficientemente notables. Luego de ello se decidió realizar interacciones triples entre variables, lo cual da resultados mucho más interesantes, como lo observado en el siguiente gráfico:
+
+
+```{r, fig.width=16, fig.height=5, echo= FALSE}
+ggplot(ventas, aes(x=City, y=Rating, fill = City))+
+  geom_boxplot()+
+  facet_grid(Gender ~ Weekday)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x='Ciudad', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y la ciudad')
+```
+
+En este se puede observar que las mujeres suelen entregar mejor rating algunos días de la semana, sin embargo los miércoles y jueves cae en comparación del género masculino. Este efecto es particularmente fuerte y visible en la ciudad de Mandalay los miércoles.
+
+Otro gráfico que en el que se encontraron observaciones interesantes fue el siguiente:
+
+```{r, fig.width=16, fig.height=5, echo= FALSE}
+ggplot(ventas, aes(x=Payment, y=Rating, fill = Payment))+
+  geom_boxplot()+
+  facet_grid(Gender~ Weekday)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x='Tipo de pago', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y tipo de pago')
+```
+
+
+Nuevamente se ve afectado el *Rating* al realizar triples interacciones entre las variables *Payment*, *Gender* y *Weekday*, donde se puede observar que los miércoles y los jueves varía el tipo de pago según género, y los días sábados los hombres que pagan con efectivo tienen un nivel de satisfaccón peor. Esto se confirmará más adelante con las regresiones lineales, entregando que los clientes que pagan con tarjeta de crédito los sábados tienen un nivel de satisfacción mayor, lo cual se ve reflejado en un aumento de 1,925 puntos en el rating..
+
+En base a este análisis se realizan dos regresiones que incluyen estas interacciones. Esto entrega resultados coherentes al EDA, con significancia en las relaciones mencionadas.
+
+En particular, en la regresión que tiene las variables *City, Gender* y *Weekday* interaccionadas se observa que, de manera significativa, el género femenino puntúa un rating de satisfacción mayor, específicamente aumentando el rating en 1,337. Este efecto se intensifica los días miércoles en las ciudades de Yangon y Naypyitaw, en donde el rating femenino es 3,237 y 2,720 puntos más alto, respectivamente.
+
+Sin embargo, este es un efecto muy particular, al que se debe tener en cuenta. Las regresiones indican también que, en general, los días miércoles, jueves y domingos el género femenino puntúa 2,609, 1,781 y 1,413 puntos más bajo en el rating, respectivamente. Es más, en la ciudad de Yangon las mujeres puntúan en promedio un ranking de 1,593 puntos más bajo que el promedio, por lo que se debe estudiar más a fondo lo que sucede en las tiendas de Yangon y Naypyitaw los miércoles para contrarrestar la estadística.
+
+Al comparar los resultados de los modelos con el modelo Lasso de autoselección, se obtienen principalmente coeficientes de un modelo que no son significativos en el otro, e incluso cambios de signo en coeficientes.
+
+Con estas variables elegidas se realizan dos modelos de Machine Learning: Random Forest, y KNN. Entre estos, y comparando con la regresión lineal, el modelo Random Forest es el que presenta el menor error para las métricas RMSE (1.698) y MAE (1.444), por lo cual este es el mejor modelo predictivo para el rating. Esta decisión de modelo se confirma al entender cómo trabaja el modelo de Random Forest, separando en árboles de decisión que es análogo a las interacciones que se encontraron tan relevantes para explicar el rating en el EDA.
+
+Con respecto a los modelos probabilísticos, se utilizó una caracterización homogénea y heterogénea para estimar la variable de decisión de cada segmento de clientes, pero dada la naturaleza del fenómeno de declarar satisfaccion, siempre será un desafío ajustar dicho evento mediante un modelo.
+
+En este caso, el modelo homogéneo (distribución binomial) modela la probabilidad de satisfacción de mejor forma que el modelo heterogéneo (beta-binomial) en la mayoría de los casos; esto se debe a que tal como se presentó anteriormente, la satisfacción pareciera no depender de las variables que se presentan en el dataset. Además, dado que la proporción de satisfechos y no satisfechos era casi siempre un 50% para cada segmento, era altamente posible que la probabilidad obtenida de los modelos fuera cercana a dicho valor, lo cual ocurrió con la caracterización homogénea.
+
+En métodos generales, se comprende la gran dificultad que existe al tratar de entender y modelar los comportamientos de distintos clientes con las herramientas que se han obtenido en el curso. Dicha complejidad no proviene directamente de la aplicación de los modelos, sino que de el dataset entregado. Esto reafirma una vez más que el modelar fenómenos reales es mucho más complejo que los modelos que se han visto en gran parte de la carrera universitaria y que requieren un mayor entendimiento del problema como de un conocimiento técnico que permita abordar y resolver dicha problemática de forma efectiva.
+
+```{r, fig.width=9, fig.height=3, echo=FALSE}
+ventas <- ventas %>%
+  mutate(Satisfecho = ifelse(Rating >= 7,1,0), Compras = 1)
+
+#Creamos variables
+genero <- unique(ventas$Gender)
+producto <- unique(ventas$Product.line)
+branch <- unique(ventas$Branch)
+
+g <- list()
+
+i <- 0
+for (tienda in branch){
+  for (m_h in genero){
+    for (pr in producto){
+      #print(paste(tienda, m_h, dia))
+      
+      i <- i + 1
+      data <- ventas %>%
+        filter(Branch == tienda) %>%
+        filter(Gender == m_h) %>%
+        filter(Product.line == pr)
+          
+      train <- data %>% sample_frac(0.7)
+        
+      test <- anti_join(data, train, by="Invoice.ID")
+        
+      train_prob <- train %>%
+        summarise(TR=sum(Satisfecho)/sum(Compras),
+                    Y=sum(Satisfecho),
+                    m=sum(Compras))
+        
+      test_prob <- test %>%
+        summarise(TR=sum(Satisfecho)/sum(Compras),
+                    Y=sum(Satisfecho),
+                    m=sum(Compras))
+
+      x_test <- seq(0,test_prob$m,by = 1)
+      
+      y_pred <- dbinom(x_test, test_prob$m, train_prob$TR)
+      
+      y_test <- dbinom(x_test, test_prob$m, test_prob$TR)
+      
+      x_norm <- x_test
+      
+      df_binomial <- data.frame(y_pred, y_test, x_norm)
+      
+      d <- melt(df_binomial, id.vars="x_norm")
+      d <- drop_na(d)
+      
+      plot <- ggplot(d, aes(x_norm,value, col=variable))+
+        geom_line(size=1)+
+        labs(x='Clientes satisfechos',y='Probabilidad', color='Sets',
+               title=paste('Modelo de elección homogéneo - Tienda', tienda,
+                           ', Género:', m_h, '\n Linea de producto:', pr))+
+        theme(plot.title = element_text(hjust = 0.5))
+      g[[i]] <- plot
+    }
+  }
+}
+
+print(g[[4]])
+```
