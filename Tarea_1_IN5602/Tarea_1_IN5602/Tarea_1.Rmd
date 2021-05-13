@@ -457,7 +457,7 @@ summary(lm1)
 
 En esta regresión se observa que, de manera significativa, el género femenino puntúa un rating de satisfacción mayor, específicamente aumentando el rating en 1,337. Este efecto se intensifica los días miércoles en las ciudades de Yangon y Naypyitaw, en donde el rating femenino es 3,237 y 2,720 puntos más alto, respectivamente.
 
-Sin embargo, este es un efecto muy particular, al que se debe tener en cuenta. La regresión indica también que, en general, los miércoles y jueves el género femenino puntúa 2,609 y 1,781 puntos más bajo en el rating, respectivamente. Es más, en la ciudad de Yangon las mujeres puntúan en promedio un ranking de 1,593 puntos más bajo que el promedio, por lo que se debe estudiar más a fondo lo que sucede en las tiendas de Yangon y Naypyitaw los miércoles para contraarrestar la estadística.
+Sin embargo, este es un efecto muy particular, al que se debe tener en cuenta. La regresión indica también que, en general, los miércoles y jueves el género femenino puntúa 2,609 y 1,781 puntos más bajo en el rating, respectivamente. Es más, en la ciudad de Yangon las mujeres puntúan en promedio un ranking de 1,593 puntos más bajo que el promedio, por lo que se debe estudiar más a fondo lo que sucede en las tiendas de Yangon y Naypyitaw los miércoles para contrarrestar la estadística.
 
 En una segunda regresión se propone un modelo de regresión lineal con interacción triple entre las variables *Gender*, *Payment* y *Weekday*. Tal como se señaló para la regresión anterior, las emociones de las personas varían según el día de la semana, y esto puede afectar al rating. De igual manera el género afecta al rating, como se observó en la regresión anterior. Finalmente, se agrega el tipo de pago debido a que se desea analizar si este tiene un efecto en el rating, el cual puede deberse a deficiencias en las tecnologías dispuestas para el pago y que puedan afectar la satisfacción del cliente.
 
@@ -505,12 +505,12 @@ Este modelo Lasso entrega muchas constantes significativas, en comparación al m
 
 (1.0 puntos)Use al menos dos de los modelos de aprendizaje de máquinas que vimos en clases (MARS, kNN, regression tree, random forest) para generar un pronóstico de Rating de un cliente al realizar una compra y compare la capacidad de estos modelos con respecto a los de regresión lineal.
 
-**R.:** En base a lo observado en la P2, se escogen las variables City, Gender, Weekday y Payment pues fueron variables que Lasso dió como significativas y van coherentes a nuestros modelos. Además se escogen la interacción que entregó resultados más interesantes de las que se usaron en el EDA y la regresión, es decir City, Gender y Weekday.
+**R.:** En base a lo observado en las regresiones, se escogen las variables *City*, *Gender*, *Weekday* y *Payment* pues fueron variables que Lasso dió como significativas y van coherentes a nuestros modelos. Además se escoge la interacción que entregó resultados más interesantes de las que se usaron en el EDA y la regresión, es decir *City*, *Gender* y *Weekday*.
 
- En base a este conjunto de variables se realizarán dos modelos de aprendizaje de máquinas: *Modelo Random Forest* y *Modelo KNN*. Luego también se utilizará el modelo de regresión lineal para comparar la capacidad que tienen los diferentes tipos de modelo.
+En base a este conjunto de variables se realizarán dos modelos de aprendizaje de máquinas: *Modelo Random Forest* y *Modelo KNN*. Luego también se utilizará el modelo de regresión lineal para comparar la capacidad que tienen los diferentes tipos de modelo.
 
-#### Modelo Random Forest:
-```{r p3rf}
+##### Modelo Random Forest:
+```{r p3rf, echo=FALSE}
 ### Ejecutar Random Forest
 train.randomf <- train(Rating ~ City + Gender + Weekday + Payment
                        +City*Gender*Weekday,
@@ -529,9 +529,9 @@ error.randomf <- test$Rating-test.randomf
 Al correr este modelo se obtiene que el resultado que minimiza el error es un modelo de 2 variables.
 
 
-#### Modelo KNN
+##### Modelo KNN
 
-```{r p3knn}
+```{r p3knn, echo=FALSE}
 train.knn <- train(Rating ~ City + Gender + Weekday + Payment
                        +City*Gender*Weekday, 
                    data=train, method="knn",  
@@ -548,8 +548,8 @@ error.knn <- test$Rating-test.knn
 Al correr este modelo se obtiene que el resultado que entrega menos errores en la predicción es un modelo con 13 nodos, es decir, 13 clasificaciones de datos.
 
 
-#### Regresión lineal
-```{r p3regrl}
+##### Regresión lineal
+```{r p3regrl, echo=FALSE}
 ### Ejecutar KNN
 
 train.lm <- train(Rating ~ City + Gender + Weekday + Payment
@@ -565,13 +565,13 @@ test.lm  <- predict(train.lm, newdata=test)
 error.lm <- test$Rating-test.lm
 ```
 
-Para comparar la capacidad de los modelos de machine learning frente a la regresión lineal debemos recordar que estos modelos son muy útiles cuando el foco del problema está en el pronóticos de relaciones complejas y no lineales, en cambio las regresiones lineales son muy útiles para entender la relación de las variables con los componentes de la regresión. 
+Para comparar la capacidad de los modelos de machine learning frente a la regresión lineal es necesario recordar que estos modelos son muy útiles cuando el foco del problema está en el pronótico de relaciones complejas y no lineales,. En cambio, las regresiones lineales son muy útiles para entender la relación de las variables con los componentes de la regresión. 
 
-En base a ese razonamiento, para el enfoque teórico sería más útil realizar una regresión lineal que un modelo de Machine Learning, con el objetivo de entender como afectan las variables al Rating. Sin embargo al ser los de Machine Learning modelos mucho más complejos que pueden observar relaciones no lineales, estos suelen dar mejores resultados en capacidad predictiva.
+En base a ese razonamiento, para el enfoque teórico sería más útil realizar una regresión lineal que un modelo de Machine Learning, con el objetivo de entender cómo afectan las variables al Rating. Sin embargo al ser los de Machine Learning modelos mucho más complejos que pueden observar relaciones no lineales, estos suelen dar mejores resultados en capacidad predictiva.
 
-Para comprobar esto se pueden comparar los errores de los modelos ML versus la regresión lineal, observandose los siguientes resultados:
+Para comprobar esto se pueden comparar los errores de los modelos ML versus la regresión lineal, observándose los siguientes resultados:
 
-```{r P3e1}
+```{r P3e1, echo=FALSE}
 #RSME
 ventas.test <- data.frame(  knn=test.knn,  rf=test.randomf,lm=test.lm, ventas=ytest)# agregar lm=test.lm,
 error.test <- data.frame( knn=error.knn, rf=error.randomf,lm=error.lm)#agregar lm=error.lm, 
@@ -579,21 +579,21 @@ error.test <- data.frame( knn=error.knn, rf=error.randomf,lm=error.lm)#agregar l
 summary(abs(error.test))
 ```
 
-```{r P3e2}
+```{r P3e2, echo=FALSE}
 summary(error.test)
 ```
 
 
-```{r P3e3}
+```{r P3e3, echo=FALSE}
 boxplot(abs(subset(error.test))); title(main="ML models", sub="Forecasting Absolute Errors")
 ```
 
 
-```{r P3e4}
+```{r P3e4, echo=FALSE}
 boxplot(subset(error.test)); title(main="ML models", sub="Forecasting Errors")#, select=-lm
 ```
 
-En general se ve que los errores son menores para los modelos de Machine Learning en particular para el de random forest, lo cual concuerda con la intuición de que estos tienen mejor capacidad predictiva para modelos más complejos, y servirían mejor para el objetivo de predecir el rating.
+En general se ve que los errores son menores para los modelos de Machine Learning, en particular para el de random forest, lo cual concuerda con la intuición de que estos tienen mejor capacidad predictiva para modelos más complejos, y servirían mejor para el objetivo de predecir el rating.
 
 
 #### Pregunta 4
@@ -603,9 +603,9 @@ En general se ve que los errores son menores para los modelos de Machine Learnin
 
 **R.:** Para comparar su capacidad predictiva es necesario recordar que el modelo Random Forest es el que presenta el menor error para las métricas RMSE (1.698) y MAE (1.444), pero el modelo de regresión lineal es el que tiene mayor R^2, es decir, explica mejor la variabilidad de los datos. Sin embargo, el R^2 del Random Forest le sigue muy de cerca, y se puede observar en los boxplot de la pregunta anterior que este es el que tiene menor rango de errores, por lo cual el mejor modelo predictivo para el rating sería Random Forest.
 
-Viendo más allá de las diferencias de los errores, para elegir un mejor modelo se debe considerar el número de variables explicativas que implican. Claramente si se desea un modelo más sencillo se debe escoger Random Forest el cual tiene como óptimo usar simplemente 2 variables. Si se desea crear un modelo más complejo sería mejor usar el modelo KNN que tiene más agrupaciones, es decir segmentos de clientes cercanos entre sí, los cuales pueden ser relevantes para lo que se desee explicar e interesantes de estudiar, sin embargo se obtiene un error un poco mayor en su predicción.
+Viendo más allá de las diferencias de los errores, para elegir un mejor modelo se debe considerar el número de variables explicativas que implican. Claramente si se desea un modelo más sencillo se debe escoger Random Forest, el cual tiene como óptimo usar simplemente 2 variables. Si se desea crear un modelo más complejo sería mejor usar el modelo KNN que tiene más agrupaciones, es decir segmentos de clientes cercanos entre sí, los cuales pueden ser relevantes para lo que se desee explicar e interesantes de estudiar, sin embargo se obtiene un error un poco mayor en su predicción.
 
-Además se debe considerar la forma en que trabajan los modelos. El modelo KNN se basa en encontrar grupos de objetos similares, y luego usa el valor de respuesta media de k observaciones como el resultado previsto, en este caso dando k=13. El modelo de Random Forest es un conjunto de varios árboles de decisión que van agregando grupos para predecir cual será el objetivo, esta agrupación hace que este tenga menos variabilidad al clasificar, y suele entregar mejores predicciones. Y el modelo de regresión lineal busca minimizar la distancia entre la regresión y los datos buscando un mejor ajuste, sin embargo no es capaz de encontrar relaciones más complejas. En esto se observa que el modelo más adecuado vuelve a ser el Random Forest, pues se ha verificado la importancia de la interacción entre variables para comprender el rating.
+Además se debe considerar la forma en que trabajan los modelos. El modelo KNN se basa en encontrar grupos de objetos similares, y luego usa el valor de respuesta media de k observaciones como el resultado previsto, en este caso dando k=13. El modelo de Random Forest es un conjunto de varios árboles de decisión que van agregando grupos para predecir cuál será el objetivo, esta agrupación hace que este tenga menos variabilidad al clasificar, y suele entregar mejores predicciones. Y el modelo de regresión lineal busca minimizar la distancia entre la regresión y los datos buscando un mejor ajuste, sin embargo no es capaz de encontrar relaciones más complejas. En esto se observa que el modelo más adecuado vuelve a ser el Random Forest, pues se ha verificado la importancia de la interacción entre variables para comprender el rating.
 
 Finalmente se puede confirmar que el mejor modelo para determinar el rating es el de Random Forest, pues cumple con minimizar el error y va clasificando según distintos parámetros hasta encontrar el rating esperado de cierto cliente, lo cual coincide con lo que hemos planteado en los modelos anteriores.
 
@@ -812,7 +812,7 @@ Documenta acá el resumen y las conclusiones principales (esto te servirá para 
 
 #### Pregunta 6
 
-El trabajo se inició con realizando una exploración de datos, donde a simple vista se ve una base de datos equitativamente distribuida para todas las variables. En particular para la variable de interés, rating, no se distingía un efecto interesante, pues parecía que para cualquier otra variable distribuía de manera uniforme.
+El trabajo se inició realizando una exploración de datos, donde a simple vista se ve una base de datos equitativamente distribuida para todas las variables. En particular para la variable de interés, *Rating*, no se distinguía un efecto interesante, pues parecía que para cualquier otra variable distribuía de manera uniforme.
 
 ```{r, fig.width=10, fig.height=6, echo=FALSE}
 g1 <- ggplot(ventas) +
@@ -849,7 +849,7 @@ g4 <- ggplot(ventas) +
 grid.arrange(g1, g2,g3, g4,nrow = 2) #une las  gráficas. 
 ```
 
-Luego, al realizar interacciones dobles se lograron percibir algunos efectos, pero estos no parecían lo suficientemente notables. Luego de ello se decide realizar interacciones triples entre variables, lo cual da resultados mucho más interesantes, como lo observado en el siguiente gráfico:
+Luego, al realizar interacciones dobles se lograron percibir algunos efectos, pero estos no parecían lo suficientemente notables. Luego de ello se decidió realizar interacciones triples entre variables, lo cual da resultados mucho más interesantes, como lo observado en el siguiente gráfico:
 
 
 ```{r, fig.width=16, fig.height=5, echo= FALSE}
@@ -860,7 +860,9 @@ ggplot(ventas, aes(x=City, y=Rating, fill = City))+
   labs(x='Ciudad', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y la ciudad')
 ```
 
-En este se puede observar que las mujeres suelen entregar mejor rating algunos días de la semana, sin embargo los miercoles y jueves cae en comparación del género masculino. Este efecto es particularmente fuerte en la ciudad de Mandalay. 
+En este se puede observar que las mujeres suelen entregar mejor rating algunos días de la semana, sin embargo los miércoles y jueves cae en comparación del género masculino. Este efecto es particularmente fuerte y visible en la ciudad de Mandalay los miércoles.
+
+Otro gráfico que en el que se encontraron observaciones interesantes fue el siguiente:
 
 ```{r, fig.width=16, fig.height=5, echo= FALSE}
 ggplot(ventas, aes(x=Payment, y=Rating, fill = Payment))+
@@ -871,15 +873,17 @@ ggplot(ventas, aes(x=Payment, y=Rating, fill = Payment))+
 ```
 
 
-Nuevamente se ve afectado el rating al realizar triples interacciones entre las variables Payment, Gender y Weekday, donde se puede observar que los miércoles y los jueves varía el tipo de pago según género, y los días sádados los hombres que pagan con efectivo califican peor. Esto se confirmará más adelante con las regresiones lineales.
+Nuevamente se ve afectado el *Rating* al realizar triples interacciones entre las variables *Payment*, *Gender* y *Weekday*, donde se puede observar que los miércoles y los jueves varía el tipo de pago según género, y los días sábados los hombres que pagan con efectivo tienen un nivel de satisfaccón peor. Esto se confirmará más adelante con las regresiones lineales, entregando que los clientes que pagan con tarjeta de crédito los sábados tienen un nivel de satisfacción mayor, lo cual se ve reflejado en un aumento de 1,925 puntos en el rating..
 
 En base a este análisis se realizan dos regresiones que incluyen estas interacciones. Esto entrega resultados coherentes al EDA, con significancia en las relaciones mencionadas.
 
-En particular la regresión que tiene las variables **City*Gender*Weekday** se observa que, de manera significativa, el género femenino puntúa un rating de satisfacción mayor, específicamente aumentando el rating en 1,337. Este efecto se intensifica los días miércoles en las ciudades de Yangon y Naypyitaw, en donde el rating femenino es 3,237 y 2,720 puntos más alto, respectivamente.
+En particular, en la regresión que tiene las variables *City, Gender* y *Weekday* interaccionadas se observa que, de manera significativa, el género femenino puntúa un rating de satisfacción mayor, específicamente aumentando el rating en 1,337. Este efecto se intensifica los días miércoles en las ciudades de Yangon y Naypyitaw, en donde el rating femenino es 3,237 y 2,720 puntos más alto, respectivamente.
 
-Sin embargo, este es un efecto muy particular, al que se debe tener en cuenta. La regresión indica también que, en general, los miércoles y jueves y domingos el género femenino puntúa 2,609, 1,781 y 1,413 puntos más bajo en el rating, respectivamente. Es más, en la ciudad de Yangon las mujeres puntúan en promedio un ranking de 1,593 puntos más bajo que el promedio, por lo que se debe estudiar más a fondo lo que sucede en las tiendas de Yangon y Naypyitaw los miércoles para contraarrestar la estadística. 
+Sin embargo, este es un efecto muy particular, al que se debe tener en cuenta. Las regresiones indican también que, en general, los días miércoles, jueves y domingos el género femenino puntúa 2,609, 1,781 y 1,413 puntos más bajo en el rating, respectivamente. Es más, en la ciudad de Yangon las mujeres puntúan en promedio un ranking de 1,593 puntos más bajo que el promedio, por lo que se debe estudiar más a fondo lo que sucede en las tiendas de Yangon y Naypyitaw los miércoles para contrarrestar la estadística.
 
-Con estas variables elegidas se realizan dos modelos de machine learning: Random Forest, y KNN. Entre estos, y comparando con la regresión lineal, el modelo Random Forest es el que presenta el menor error para las métricas RMSE (1.698) y MAE (1.444), por lo cual el mejor modelo predictivo para el rating sería Random Forest. Esta decisión de modelo se confirma al entender como trabaja el modelo de random forest, separando en árboles de decisión que es análogo a las interacciones que se encontraron tan relevantes para explicar el rating en el EDA.
+Al comparar los resultados de los modelos con el modelo Lasso de autoselección, se obtienen principalmente coeficientes de un modelo que no son significativos en el otro, e incluso cambios de signo en coeficientes.
+
+Con estas variables elegidas se realizan dos modelos de Machine Learning: Random Forest, y KNN. Entre estos, y comparando con la regresión lineal, el modelo Random Forest es el que presenta el menor error para las métricas RMSE (1.698) y MAE (1.444), por lo cual este es el mejor modelo predictivo para el rating. Esta decisión de modelo se confirma al entender cómo trabaja el modelo de Random Forest, separando en árboles de decisión que es análogo a las interacciones que se encontraron tan relevantes para explicar el rating en el EDA.
 
 ## Anexos
 
