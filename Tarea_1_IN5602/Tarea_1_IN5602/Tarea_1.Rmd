@@ -86,7 +86,7 @@ Escribe acá todos los comandos que necesitas ejecutar antes de abordar las preg
 
 Importamos las librerías a utilizar:
 
-```{r Preparación, message = FALSE}
+```{r Preparación, message = FALSE, warning=FALSE}
 #Exploración de datos
 library(tidyr)
 library(dplyr)
@@ -106,20 +106,24 @@ library(MLmetrics)
 library(inspectdf)
 library(plyr)
 library(reshape2)
-set.seed(1234)
+set.seed(1234) #fija semilla para data train y test
 
 ```
 
 ```{r, include = FALSE}
 #path<- "C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
-path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
-#path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
+#path <- 'C:/Users/Felipe/Documents/GitHub/2021-1/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602'
+path <- "C:/Users/Matías Diddier/OneDrive/Documentos/GitHub/marketinglabs/Tarea_1_IN5602/Tarea_1_IN5602"
 setwd(path)
 ```
 
 Se importa la base de datos
 ```{r}
 ventas <- read.csv("supermarket_sales.csv")
+```
+
+
+```{r, echo=FALSE}
 print(paste('Las dimensiones de los datos son:', dim(ventas)[1], 'filas y', dim(ventas)[2], 'columnas.'))
 print(paste('El dataframe posee:',sum(is.na(ventas)), 'datos vacíos.'))
 str(ventas)
@@ -164,12 +168,12 @@ Documenta acá el desarrollo de tu tarea por pregunta.
 
 (0 puntos) Explore los datos para entender la satisfacción de los clientes y qué variables podrían ayudar a predecir cuando un cliente está más satisfecho.
 
-Se analiza la composición de la base de datos con la función __summary__:
-```{r P1}
+**R.:** Se analiza la composición de la base de datos con la función __summary__:
+```{r P1, echo=FALSE}
 summary(ventas)
 ```
 
-Las variables categoricas tienen una distribución similiar entre sus distintos valores, por lo que no hay un gran desbalance entre clases. Además, dado que la variable *gross.margin.percentage* no posee varianza alguna (su mínimo y máximo son iguales), se conlcuye que no aporta información al problema y debe ser eliminada. Sobre las otras variables númericas, a simple vista los percentiles parecen indicar que no hay outliers de gran magnitud en las variables. Para confirmar este supuesto se realiza un histograma para cada variable numérica:
+Las variables categóricas tienen una distribución similar entre sus distintos valores, por lo que no hay un gran desbalance entre clases. Además, dado que la variable *gross.margin.percentage* no posee varianza alguna (su mínimo y máximo son iguales), se concluye que no aporta información al problema y debe ser eliminada. Sobre las otras variables númericas, a simple vista los percentiles parecen indicar que no hay outliers de gran magnitud en las variables. Para confirmar este supuesto se realiza un histograma para cada variable numérica:
 
 ```{r, fig.width=11, fig.height=8, dpi=300, echo=FALSE}
 cogs <- ggplot(ventas, aes(x=cogs, fill=..count..))+
@@ -230,9 +234,9 @@ ggcorr(nums,  label = TRUE, label_color = "white", high='#000080',
 ```
 Se observa que *Rating* tiene correlación 0 con todas las demás variables, y varias variables tienen correlación 1, esto debido a que las variables *Tax 5%, cogs y gross income* son un porcentaje de la variable *Total*. Dicha correlación se tendrá en cuenta al correr los modelos de las preguntas siguientes.
 
-Respecto a las variables tipo *character*, se puede obtener una muestra aleatoria para observar de que trata cada una. En particular notando que *Product.line*, *City*, *Payment*, *Gender*, *Branch* y *Customer.type* son formas claras de categorizar clientes.
+Respecto a las variables tipo *character*, se puede obtener una muestra aleatoria para observar de qué trata cada una. En particular notando que *City*, *Payment*, *Gender*, *Branch* y *Customer.type* son formas claras de categorizar clientes y zona geográfica de las ventas.
 
-Viendo las variables tipo no numérica:
+Viendo las variables no numéricas:
 ```{r, fig.width=10, fig.height=8, dpi=500, echo=FALSE}
 
 branch_plot <- ggplot(ventas, aes(x=Branch, fill=..count..))+
@@ -278,7 +282,7 @@ figure
 
 ```
 
-Con ello se puede observar que la mayoría de estas categorías están repartidas con igual porcentaje dentro de la base de datos, siendo la excepción las fechas, donde existen algunos días de la semana más frecuentes que otros. Otro dato interesante es que las Tiendas tienen una distribución similar a la variable *City*. Para explorar aún más su relación, se genera el siguiente barplot:
+Con ello se puede observar que la mayoría de estas categorías están repartidas con igual porcentaje dentro de la base de datos, siendo la excepción las fechas, donde existen algunos días de la semana más frecuentes que otros. Otro dato interesante es que las tiendas tienen una distribución similar a la variable *City*. Para explorar aún más su relación, se genera el siguiente barplot:
 
 ```{r, fig.width=4, fig.height=4, dpi=100, echo=FALSE}
 ggplot(ventas, aes(x=City, fill = Branch))+
@@ -290,7 +294,7 @@ ggplot(ventas, aes(x=City, fill = Branch))+
 Lo anterior indica que la ciudad de Yangon tiene el supermercado A, la ciudad Mandalay tiene al supermercado B y los centros C están unicamente en Naypyitaw. Dado lo anterior, hablar sobre *Branch* o *City* será equivalente desde ahora en adelante.
 
 
-Ahora, si se analiza cómo se comportan las variables en función de la satisfacción, se pueden ver los siguientes gráficos respecto a las variables numéricas, donde se observa que la satisfacción se comporta de manera equitativa para todos los valores de la variable númerica y no emerge ninguna relación aparante.
+Ahora, si se analiza cómo se comportan las variables en función de la satisfacción, se pueden ver los siguientes gráficos respecto a las variables numéricas, donde se observa que la satisfacción se comporta de manera equitativa para todos los valores de la variable númerica y no emerge ninguna relación aparente.
 ```{r, fig.width=10, fig.height=6, echo=FALSE}
 g1 <- ggplot(ventas) +
   aes(y=Rating, x=Total) +
@@ -357,9 +361,9 @@ g5 <- ggplot(ventas, aes(y=Rating, x=Payment, fill = Payment))+
 fig <- ggarrange(g3, ggarrange(g4, g5, ncol = 2), g1, g2, nrow=4)
 fig
 ```
-A simple vista no existen relaciones muy marcadas entre las comparaciones. Según los gráficos, la tienda con menor nivel de Rating es la Tienda B, además, los días con menor satisfacción son los Miércoles, Jueves y Sábados. Sobre los productos, *Sports and travel* y *Electronic accessories* poseen el menor nivel de satisfacción. Con respecto al género del cliente, no se muestran diferencias marcadas de satisfacción, tampoco sobre el medio de pago.
+A simple vista no existen relaciones muy marcadas entre las comparaciones. Según los gráficos, la tienda con menor nivel de Rating es la tienda B, además, los días con menor satisfacción son los Miércoles, Jueves y Sábados. Sobre los productos, *Sports and travel* y *Electronic accessories* poseen el menor nivel de satisfacción. Con respecto al género del cliente, no se muestran diferencias marcadas de satisfacción, tampoco sobre el medio de pago.
 
-Dado que analizar unicamente la interacción de una variable no arroja resultados muy evidentes, se generan boxplot que reunan algunas combinaciones de variables para poder explicar al *Rating*.
+Dado que analizar únicamente la interacción de una variable no arroja resultados muy evidentes, se generan boxplot que reunan algunas combinaciones de variables para poder explicar al *Rating*.
 
 ```{r, fig.width=16, fig.height=5, echo= FALSE}
 ggplot(ventas, aes(x=City, y=Rating, fill = City))+
@@ -369,7 +373,7 @@ ggplot(ventas, aes(x=City, y=Rating, fill = City))+
   labs(x='Ciudad', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y la ciudad')
 ```
 
-De esta interacción se observan varios resultados interesantes: los miércoles las mujeres de mandalay tienen una baja satisfacción, en comparación con el resto de ciudades y de días. 
+De esta interacción se observan varios resultados interesantes: las mujeres suelen entregar mejor rating algunos días de la semana, sin embargo los miércoles y jueves cae en comparación del género masculino. Este efecto es particularmente fuerte y visible en la ciudad de Mandalay los miércoles.
 
 ```{r, fig.width=16, fig.height=5, echo= FALSE}
 ggplot(ventas, aes(x=Payment, y=Rating, fill = Payment))+
@@ -379,32 +383,32 @@ ggplot(ventas, aes(x=Payment, y=Rating, fill = Payment))+
   labs(x='Tipo de pago', y='Rating', title='Satisfacción según el Género ( 0 = Hombre, 1 = Mujer), el día de la semana y tipo de pago')
 ```
 
-Se puede observar que los miercoles y los jueves varía el tipo de pago seún género, y los días sádados los hombres que pagan con efectivo califican peor.
+Se puede observar que los miércoles y los jueves varía el tipo de pago según género, y los días sábados los hombres que pagan con efectivo tienen un nivel de satisfacción peor.
 
-```{r, fig.width=11, fig.height=3}
+```{r, fig.width=11, fig.height=3, echo=FALSE}
 g <- ggplot(ventas, aes(y=Total, fill=factor(Branch))) + geom_boxplot(alpha=0.4)+ facet_grid(.~Product.line)
 g
 ```
-En este se puede observar que la tienda C es la que tiene más ganancias,y la tienda asociada a la marca B vende poco en accesorios. 
+En este se puede observar que la tienda C es la que tiene más ganancias,y la tienda asociada a la marca B vende poco en *Fashion accesories*.
 
-```{r, fig.width=6, fig.height=4}
+```{r, fig.width=6, fig.height=4, echo=FALSE}
 g <- ggplot(ventas, aes(y=Rating, fill=factor(City))) + geom_boxplot(alpha=0.4)+ facet_grid(Gender~City)
 g
 ```
+
 Con esta interacción se puede observar que el rating cambia ligeramente en promedio al realizar la interacción ciudad y género.
 
-
-```{r, fig.width=8, fig.height=4}
+```{r, fig.width=8, fig.height=4, echo=FALSE}
 g3 <- ggplot(ventas, aes(x=Rating, fill=factor(Gender))) + geom_density(alpha=0.4)+
   facet_wrap(.~Product.line, ncol = 3)
 g3
 ```
 
-Finalemente, aunque las diferencias de segmentos no son muy notables dado lo equilibrados que son los datos de las ventas, si existen diferencias que salen a la luz de realizar interacciones de variables lo cual vale tener en cuenta para el estudio.
+Finalmente, aunque las diferencias de segmentos no son muy notables dado lo equilibrados que son los datos de las ventas, si existen diferencias que salen a la luz de realizar interacciones de variables lo cual vale tener en cuenta para el estudio.
 
 Como se mencionó anteriormente, hay variables que tienen una correlación perfecta o que no tienen varianza alguna. La presencia de estos factores puede afectar de manera significativa el desarrolllo de las preguntas siguientes, por lo que serán eliminadas.
 
-```{r}
+```{r, echo=FALSE}
 ventas <- subset(ventas, select = -c(gross.margin.percentage, gross.income, Tax.5.,cogs,Date_time,Date))
 head(ventas)
 ```
@@ -415,7 +419,7 @@ head(ventas)
 
 (2.0 puntos) Usando los aprendizajes derivados de la exploración de datos, use un enfoque de regresión lineal para examinar cuantitativamente qué factores determinan la satisfacción al momento de realizar una compra.
 
-```{r}
+```{r, echo=FALSE}
 # Construimos un vector que esta formado por números de filas aleatoriamente
 index <- sample(1:nrow(ventas), size= nrow(ventas)*0.7)
 
@@ -433,7 +437,7 @@ ytest <- test$Rating
 ```
 
 Para comenzar esta sección, se crea un *train set* y un *test set*, con una proporción de 70%:30%.
-En el set de variables *xtrain* se eliminaron algunas variables que estaban altamente correlacionadas con otras, y la ganancia por producto ya que es constante, y no servirá como variable predictora. También se elimina la variable a predecir, *Rating*.
+En el set de variables *xtrain* se eliminó la variable a predecir, *Rating*.
 
 
 **a)** Proponga al menos dos especificaciones alternativas para el objetivo propuesto. Justifique muy brevemente por que las variables que está incluyendo en el modelo tienen sentido desde el punto de vista del negocio. Justifique además el nivel de agregación escogido y los índices considerados en el modelo.
@@ -445,7 +449,7 @@ En una primera regresión se propone un modelo de regresión lineal de interacci
 En esta regresión se están estudiando efectos en 3 de las 4 dimensiones anteriormente señaladas: la caracterización de la compra, la zona geográfica y la caracterización temporal. El nivel de agregación fue escogido gracias a lo observado en gráficas al realizar el EDA, ya que en particular se observaron cambios en el rating según el día de la semana, al contrastarlo según género y ciudad.
 
 
-```{r P2_a.1}
+```{r P2_a.1, echo=FALSE}
 lm1 <- lm(Rating ~ City*Gender*Weekday, data=ventas) #regresión lineal 1 con datos
 summary(lm1)
 
@@ -459,7 +463,7 @@ En una segunda regresión se propone un modelo de regresión lineal con interacc
 
 En esta regresión se están estudiando efectos en 2 de las 4 dimensiones anteriormente señaladas: la caracterización de la compra y una caracterización temporal. El nivel de agregación escogido se debe a un gráfico realizado con anterioridad en el EDA, en donde se observan cambios en el rating al comparar por estas 3 variables simultáneamente. 
 
-```{r P2_a.2}
+```{r P2_a.2, echo=FALSE}
 lm2 <- lm(Rating ~ Gender*Weekday*Payment, data=ventas)
 summary(lm2)
 
@@ -474,9 +478,9 @@ Como conclusión de las regresiones lineales, se debe estudiar la razón de que 
 
 **R.:** El método de selección adecuado para este caso es **Lasso**. Para esto, primero se crea una matriz con las interacciones respectivas en cada regresión para poder entregarle esto a la función *glmnet* y que el algoritmo funcione, con un lambda igual a 0,05. 
 
-```{r P2_b.1}
+```{r P2_b.1, echo=FALSE}
 
-interaccion_lm1 <- model.matrix(~City*Gender*Weekday, data=ventas)
+interaccion_lm1 <- model.matrix(~City*Gender*Weekday, data=ventas) #se crea matriz con interacciones
 
 Lasso1 <- glmnet(interaccion_lm1, ventas$Rating, alpha=1, lambda=0.05) #modelo Lasso de autoselección
 coef(Lasso1) #impresión de coeficientes
@@ -486,11 +490,11 @@ coef(Lasso1) #impresión de coeficientes
 Las constantes entregadas por el modelo Lasso varían bastante con respecto a las entregadas por la regresión lineal. Por ejemplo, el día miércoles por sí solo no era significativo en la regresión lineal mientras que según el modelo Lasso (con lambda igual a 0,05) sí lo es. También la interacción entre el género femenino y la ciudad Yangon, que según la regresión lineal es significativa pero según el modelo Lasso no lo es.
 
 
-```{r P2_b.2}
-interaccion_lm2 <- model.matrix(~Gender*Weekday*Payment, data=ventas)
+```{r P2_b.2, echo=FALSE}
+interaccion_lm2 <- model.matrix(~Gender*Weekday*Payment, data=ventas) #se crea matriz con interacciones
 
-Lasso2 <- glmnet(interaccion_lm2, ventas$Rating, alpha=1, lambda=0.05)
-coef(Lasso2)
+Lasso2 <- glmnet(interaccion_lm2, ventas$Rating, alpha=1, lambda=0.05) #modelo Lasso de autoselección
+coef(Lasso2) #impresión de coeficientes
 ```
 
 Este modelo Lasso entrega muchas constantes significativas, en comparación al modelo de regresión lineal que solo entregaba 2 constantes con alta significancia. Para este caso, el modelo Lasso si considera significativas las mismas 2 constantes de la regresión lineal, aunque los valores del modelo Lasso son más cercanos a cero. Sin embargo, el modelo Lasso entrega 10 otras constantes significativas, de las cuales solo 2 constantes son positivas. La razón de esto puede ser el valor de lambda, el cual tendría que ser mayor para funcionar de mejor manera.
