@@ -23,7 +23,7 @@ Un grupo de ex-alumnos/as del IN5602 que hoy se han dedicado a emprender estan c
 
 ```{r ,message=FALSE}
 #Se limpia el espacio de trabajo
-
+library(mlogit)
 rm(list=ls())				# Limpiamos todos los objetos creados en R
 graphics.off()	    # se limpian los graficos 
 
@@ -42,18 +42,58 @@ head(Fishing, 5)
 
 ```{r ,message=FALSE}
 
-#Escriba el codigo
+Fish <- mlogit.data(Fishing, shape="wide", varying=2:9, choice="mode")
 
+logit_Fish <- mlogit(mode~price | income | catch, Fish)
 
+summary(logit_Fish)
 
 ```
+
+La variable base utilizada es _beach_, por lo cual todos los resultados están calculados en relación a aquella modalidad.
+Los interceptos de _charter_, _boat_ y _pier_ son positivos y significativos lo que significa que las personas prefieren más a estos modos en relación a _beach_. Notar que estas preferencias son base y no dependen de ningún atributo.
+
+Con respecto al precio, un aumento en dicha variable trae consigo una reducción en la preferencia de algún modo de turismo. Esto es relativamente lógico ya que mientras más costoso sea algo, entonces tiene una menor demanda.
+
+Con respecto a _income_, mientras mayor es el ingreso de las personas entonces optan por preferir _boat_ que _beach_. Además, los coeficientes de _charter_ y _pier_ son negativos, por lo que estos modos de viaje son menos preferidos que _beach_.
+
+Sobre la probabilidad de pesca, _beach_ es el más preferido seguido por _boat_ y _pier_ con una magnitud similar. Muy atrás se encuentra _charter_ con un coeficiente menor a 1.
+
+```{r}
+
+#Transformamos la data de wide a long
+Fishing_long <- reshape(Fishing, direction = "long",
+                        varying = list(price = 2:5, catch = 6:9),
+                        v.names = c("price", "catch"),
+                        timevar = "modalidad")
+n_order <- order(Fishing_long$id, Fishing_long$modalidad)
+Fishing_long <- Fishing_long[n_order,]
+
+#Codificamos las opciones
+Fishing_long$mode <- as.character(Fishing_long$mode)
+Fishing_long$modalidad[which(Fishing_long$modalidad==1)] <- "beach"
+Fishing_long$modalidad[which(Fishing_long$modalidad==2)] <- "pier"
+Fishing_long$modalidad[which(Fishing_long$modalidad==3)] <- "boat"
+Fishing_long$modalidad[which(Fishing_long$modalidad==4)] <- "charter"
+
+ggplot(Fishing_long, aes(x=price, fill=modalidad))+
+  geom_histogram(alpha=0.7, position="identity", bins=100)+
+  scale_x_log10()
+```
+
 
 2. Usando la librería _mlogit_, estime un modelo probit e interprete sus resultados incluyendo los valores de la matriz de varianza covarianza"
 
 ```{r ,message=FALSE}
-#Escriba el codigo
+probit_Fish <- mlogit(formula = mode ~ price + income + catch, data = Fish,
+                      alt.subset = c("charter", "boat", "pier"), probit = TRUE)
 
+summary(probit_Fish)
 
+# Tomando el output del probit calculado, creamos una matriz de ceros:
+C <- matrix(0, 3, 3) 
+# rellenamos la matriz triangular inferior con los coeficientes del output. Se debe fijar las posiciones, en mi ejemplo, coeficientes 6 a 10 del output
+C[!upper.tri(C)] <- c(1, coef(Probit)[4:10])
 ```
 
 3. Usando la librería _gmnl_ Construya un modelo con 2 clases latentes e interprete sus resultados.
