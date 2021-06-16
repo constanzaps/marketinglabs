@@ -9,7 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Gabriela Mora" />
+<meta name="author" content="Felipe Jorquera Díaz, Constanza Peña Soto, Matías Salinas Muñoz" />
 
 
 <title>Laboratorio de Modelos de Elección Discreta</title>
@@ -1713,8 +1713,8 @@ pre code {
 
 
 <h1 class="title toc-ignore">Laboratorio de Modelos de Elección Discreta</h1>
-<h4 class="author">Gabriela Mora</h4>
-<h4 class="date">09-06-2021</h4>
+<h4 class="author">Felipe Jorquera Díaz, Constanza Peña Soto, Matías Salinas Muñoz</h4>
+<h4 class="date">16-06-2021</h4>
 
 </div>
 
@@ -1778,7 +1778,8 @@ pre code {
 ## Log-Likelihood: -1199.1
 ## McFadden R^2:  0.19936 
 ## Likelihood ratio test : chisq = 597.16 (p.value = &lt; 2.22e-16)</code></pre>
-<p>La variable base utilizada es <em>beach</em>, por lo cual todos los resultados están calculados en relación a aquella modalidad. Los interceptos de <em>charter</em>, <em>boat</em> y <em>pier</em> son positivos y significativos lo que significa que las personas prefieren más a estos modos en relación a <em>beach</em>. Notar que estas preferencias son base y no dependen de ningún atributo.</p>
+<p>Para comenzar, los encuestados prefirieron <em>charter</em> un 38,24% de las veces, y <em>boat</em> un 35,36% de las veces. Atrás quedan <em>pier</em> y <em>beach</em>, con un 15,06% y 11,34% de las veces.</p>
+<p>La variable base utilizada es <em>beach</em>, por lo cual todos los resultados están calculados en relación a aquella modalidad. Los interceptos de <em>charter</em>, <em>boat</em> y <em>pier</em> son positivos y significativos lo que significa que las personas prefieren más a estos modos en relación a <em>beach</em>. Es más, los encuestados prefieren <em>charter</em>, seguido de <em>pier</em> y <em>boat</em>, con <em>beach</em> en el último lugar. Notar que estas preferencias son base y no dependen de ningún atributo.</p>
 <p>Con respecto al precio, un aumento en dicha variable trae consigo una reducción en la preferencia de algún modo de turismo. Esto es relativamente lógico ya que mientras más costoso sea algo, entonces tiene una menor demanda.</p>
 <p>Con respecto a <em>income</em>, mientras mayor es el ingreso de las personas entonces optan por preferir <em>boat</em> que <em>beach</em>. Además, los coeficientes de <em>charter</em> y <em>pier</em> son negativos, por lo que estos modos de viaje son menos preferidos que <em>beach</em> cuando aumenta el ingreso. Sin embargo, solo lo correspondiente al modo <em>pier</em> es significativo.</p>
 <p>Sobre la probabilidad de pesca, <em>beach</em> es el más preferido seguido por <em>boat</em> y <em>pier</em> con una magnitud similar. Muy atrás se encuentra <em>charter</em> con un coeficiente menor a 1.</p>
@@ -1804,33 +1805,117 @@ pre code {
 <ol start="2" style="list-style-type: decimal">
 <li>Usando la librería <em>mlogit</em>, estime un modelo probit e interprete sus resultados incluyendo los valores de la matriz de varianza covarianza&quot;</li>
 </ol>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="co">#probit_Fish &lt;- mlogit(formula = mode ~ price + income + catch, data = Fish,</span></span>
-<span id="cb6-2"><a href="#cb6-2"></a><span class="co">#                      alt.subset = c(&quot;charter&quot;, &quot;boat&quot;, &quot;pier&quot;), probit = TRUE)</span></span>
-<span id="cb6-3"><a href="#cb6-3"></a></span>
-<span id="cb6-4"><a href="#cb6-4"></a><span class="co">#summary(probit_Fish)</span></span>
-<span id="cb6-5"><a href="#cb6-5"></a></span>
-<span id="cb6-6"><a href="#cb6-6"></a><span class="co"># Tomando el output del probit calculado, creamos una matriz de ceros:</span></span>
-<span id="cb6-7"><a href="#cb6-7"></a><span class="co">#C &lt;- matrix(0, 3, 3) </span></span>
-<span id="cb6-8"><a href="#cb6-8"></a><span class="co"># rellenamos la matriz triangular inferior con los coeficientes del output. Se debe fijar las posiciones, en mi ejemplo, coeficientes 6 a 10 del output</span></span>
-<span id="cb6-9"><a href="#cb6-9"></a><span class="co">#C[!upper.tri(C)] &lt;- c(1, coef(Probit)[4:10])</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>probit_Fish &lt;-<span class="st"> </span><span class="kw">mlogit</span>(mode<span class="op">~</span>price <span class="op">|</span><span class="st"> </span>income <span class="op">|</span><span class="st"> </span>catch, <span class="dt">data =</span> Fish,</span>
+<span id="cb6-2"><a href="#cb6-2"></a>                      <span class="co">#alt.subset = c(&quot;charter&quot;, &quot;boat&quot;, &quot;pier&quot;), </span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>                      <span class="dt">probit =</span> <span class="ot">TRUE</span>, <span class="dt">print.level=</span><span class="dv">1</span>)</span></code></pre></div>
+<pre><code>## Initial value of the function : 1211.24722954116 
+## iteration 1, step = 0.5, lnL = 1198.8972783, chi2 = 27.61314093
+## iteration 2, step = 0.125, lnL = 1197.04697889, chi2 = 35.46787676
+## iteration 3, step = 1, lnL = 1191.32281326, chi2 = 10.78328731
+## iteration 4, step = 0.125, lnL = 1187.2831162, chi2 = 69.57722655
+## iteration 5, step = 0.5, lnL = 1185.42821774, chi2 = 7.67648041
+## iteration 6, step = 0.25, lnL = 1183.7422783, chi2 = 16.94800476
+## iteration 7, step = 1, lnL = 1182.9571497, chi2 = 1.56999761
+## iteration 8, step = 1, lnL = 1182.78278506, chi2 = 1.10791573
+## iteration 9, step = 1, lnL = 1182.1899098, chi2 = 0.96371459
+## iteration 10, step = 1, lnL = 1181.78268788, chi2 = 0.56271252
+## iteration 11, step = 1, lnL = 1180.84393535, chi2 = 1.01130467
+## iteration 12, step = 0.03125, lnL = 1179.53401695, chi2 = 38.11863926
+## iteration 13, step = 0.00390625, lnL = 1179.2831738, chi2 = 136.15456928
+## iteration 14, step = 1, lnL = 1179.06666588, chi2 = 1.20139778
+## iteration 15, step = 1, lnL = 1178.61599007, chi2 = 2.34142974
+## iteration 16, step = 1, lnL = 1177.82693937, chi2 = 1.7062868
+## iteration 17, step = 1, lnL = 1177.62198893, chi2 = 1.0430177
+## iteration 18, step = 1, lnL = 1176.79302167, chi2 = 1.45401439
+## iteration 19, step = 1, lnL = 1175.8083092, chi2 = 1.97585898
+## iteration 20, step = 0.0625, lnL = 1175.65616112, chi2 = 4.37075674
+## iteration 21, step = 0.25, lnL = 1175.39327623, chi2 = 1.68046896
+## iteration 22, step = 0.125, lnL = 1175.30543929, chi2 = 1.26607019
+## iteration 23, step = 1, lnL = 1174.81890565, chi2 = 0.9856508
+## iteration 24, step = 0.0078125, lnL = 1174.81637527, chi2 = 8.12901103
+## iteration 25, step = 7.62939453125e-06, lnL = 1174.81547026, chi2 = 416.78264946
+## iteration 26, step = 0.001953125, lnL = 1174.78627823, chi2 = 13.35016205
+## iteration 27, step = 6.103515625e-05, lnL = 1174.7831294, chi2 = 117.63024342
+## iteration 28, step = 0.001953125, lnL = 1174.77144365, chi2 = 18.28766109
+## iteration 29, step = 0.0625, lnL = 1174.76172434, chi2 = 26.63985796
+## iteration 30, step = 0.125, lnL = 1174.72889072, chi2 = 4.10771674
+## iteration 31, step = 0.03125, lnL = 1174.58472886, chi2 = 13.80277331
+## iteration 32, step = 0.125, lnL = 1174.29894924, chi2 = 3.37679273
+## iteration 33, step = 0.0009765625, lnL = 1174.25601797, chi2 = 48.52129163
+## iteration 34, step = 0.0009765625, lnL = 1174.24407342, chi2 = 16.30162146
+## iteration 35, step = 0.0078125, lnL = 1174.24325442, chi2 = 2.19875994
+## iteration 36, step = 0.0078125, lnL = 1174.23748496, chi2 = 1.83707863
+## iteration 37, step = 0.0625, lnL = 1174.21169046, chi2 = 1.04524531
+## iteration 38, step = 0.0078125, lnL = 1174.20990754, chi2 = 0.71434399
+## iteration 39, step = 0.03125, lnL = 1174.20736716, chi2 = 1.13115326
+## iteration 40, step = 0.125, lnL = 1174.20638551, chi2 = 0.46276502
+## iteration 41, step = 0.5, lnL = 1174.15086685, chi2 = 0.39951046
+## iteration 42, step = 0.25, lnL = 1174.07426813, chi2 = 0.473196
+## iteration 43, step = 0.25, lnL = 1174.04516716, chi2 = 0.69759252
+## iteration 44, step = 0.0625, lnL = 1174.02979755, chi2 = 1.09763259
+## iteration 45, step = 0.125, lnL = 1174.009789, chi2 = 0.16174308
+## iteration 46, step = 0.0009765625, lnL = 1174.00276986, chi2 = 7.15644515</code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">summary</span>(probit_Fish)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## mlogit(formula = mode ~ price | income | catch, data = Fish, 
+##     probit = TRUE, print.level = 1)
+## 
+## Frequencies of alternatives:
+##   beach    boat charter    pier 
+## 0.11337 0.35364 0.38240 0.15059 
+## 
+## bfgs method
+## 47 iterations, 0h:6m:43s 
+## g&#39;(-H)^-1g =  7.16 
+## successive function values within tolerance limits 
+## 
+## Coefficients :
+##                        Estimate  Std. Error z-value  Pr(&gt;|z|)    
+## boat:(intercept)     1.0299e-01  1.8614e-01  0.5533  0.580062    
+## charter:(intercept)  7.4452e-01  1.8331e-01  4.0615 4.876e-05 ***
+## pier:(intercept)     5.2291e-01  2.0533e-01  2.5467  0.010874 *  
+## price               -7.6367e-03  1.0775e-03 -7.0877 1.364e-12 ***
+## boat:income          2.0641e-05  2.4534e-05  0.8413  0.400168    
+## charter:income      -8.7314e-05  2.7092e-05 -3.2229  0.001269 ** 
+## pier:income         -6.2368e-05  4.8047e-05 -1.2981  0.194267    
+## beach:catch          1.2820e+00  2.5135e-01  5.1002 3.392e-07 ***
+## boat:catch           1.4845e-01  3.7289e-01  0.3981  0.690559    
+## charter:catch        2.1429e-01  9.4758e-02  2.2614  0.023731 *  
+## pier:catch           1.3008e+00  6.3666e-01  2.0431  0.041042 *  
+## boat.charter        -5.2042e-01  2.5446e-01 -2.0452  0.040833 *  
+## boat.pier            4.2200e-01  1.2873e+00  0.3278  0.743043    
+## charter.charter      8.0751e-01  1.7439e-01  4.6305 3.648e-06 ***
+## charter.pier         6.6983e-01  4.1493e-01  1.6143  0.106454    
+## pier.pier           -7.2407e-06  6.7343e-02 -0.0001  0.999914    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Log-Likelihood: -1174
+## McFadden R^2:  0.21614 
+## Likelihood ratio test : chisq = 647.44 (p.value = &lt; 2.22e-16)</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="co"># Tomando el output del probit calculado, creamos una matriz de ceros:</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="co">#C &lt;- matrix(0, 3, 3) </span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="co">#rellenamos la matriz triangular inferior con los coeficientes del output. Se debe fijar las posiciones, en mi ejemplo, coeficientes 6 a 10 del output</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="co">#C[!upper.tri(C)] &lt;- c(1, coef(Probit)[4:10])</span></span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Usando la librería <em>gmnl</em> Construya un modelo con 2 clases latentes e interprete sus resultados.</li>
 </ol>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">detach</span>(<span class="st">&quot;package:mlogit&quot;</span>, <span class="dt">unload=</span><span class="ot">TRUE</span>)</span>
-<span id="cb7-2"><a href="#cb7-2"></a><span class="kw">install.packages</span>(<span class="st">&quot;https://cran.r-project.org/src/contrib/Archive/mlogit/mlogit_1.0-2.tar.gz&quot;</span>, <span class="dt">repos=</span><span class="ot">NULL</span>,<span class="dt">type=</span><span class="st">&quot;source&quot;</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">library</span>(gmnl) <span class="co">#cargamos las librerías a utilizar</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">#detach(&quot;package:mlogit&quot;, unload=TRUE)</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="co">#install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/mlogit/mlogit_1.0-2.tar.gz&quot;, repos=NULL,type=&quot;source&quot;)</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">library</span>(gmnl) <span class="co">#cargamos las librerías a utilizar</span></span></code></pre></div>
 <pre><code>## Warning: package &#39;gmnl&#39; was built under R version 4.0.5</code></pre>
 <pre><code>## Warning: package &#39;maxLik&#39; was built under R version 4.0.5</code></pre>
 <pre><code>## Warning: package &#39;miscTools&#39; was built under R version 4.0.5</code></pre>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">library</span>(mlogit)</span>
-<span id="cb12-2"><a href="#cb12-2"></a></span>
-<span id="cb12-3"><a href="#cb12-3"></a>data_gmnl &lt;-<span class="st"> </span><span class="kw">mlogit.data</span>(Fishing, <span class="dt">shape =</span> <span class="st">&quot;wide&quot;</span>, <span class="dt">varying =</span> <span class="dv">2</span><span class="op">:</span><span class="dv">9</span>, <span class="dt">choice =</span> <span class="st">&quot;mode&quot;</span>, <span class="dt">id.var =</span> <span class="st">&#39;mode&#39;</span>) <span class="co">#adecuamos la data al modelo</span></span>
-<span id="cb12-4"><a href="#cb12-4"></a></span>
-<span id="cb12-5"><a href="#cb12-5"></a>gmnl_fish &lt;-<span class="st"> </span><span class="kw">gmnl</span>(mode <span class="op">~</span><span class="st"> </span>price <span class="op">|</span><span class="st"> </span><span class="dv">1</span> <span class="op">|</span><span class="st"> </span>catch <span class="op">|</span><span class="st"> </span><span class="dv">0</span> <span class="op">|</span><span class="st"> </span>income, <span class="dt">data=</span>data_gmnl, <span class="dt">model=</span><span class="st">&#39;lc&#39;</span>, <span class="dt">Q=</span><span class="dv">2</span>) <span class="co">#ejecutamos el modelo</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">library</span>(mlogit)</span>
+<span id="cb16-2"><a href="#cb16-2"></a></span>
+<span id="cb16-3"><a href="#cb16-3"></a>data_gmnl &lt;-<span class="st"> </span><span class="kw">mlogit.data</span>(Fishing, <span class="dt">shape =</span> <span class="st">&quot;wide&quot;</span>, <span class="dt">varying =</span> <span class="dv">2</span><span class="op">:</span><span class="dv">9</span>, <span class="dt">choice =</span> <span class="st">&quot;mode&quot;</span>, <span class="dt">id.var =</span> <span class="st">&#39;mode&#39;</span>) <span class="co">#adecuamos la data al modelo</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a></span>
+<span id="cb16-5"><a href="#cb16-5"></a>gmnl_fish &lt;-<span class="st"> </span><span class="kw">gmnl</span>(mode <span class="op">~</span><span class="st"> </span>price <span class="op">|</span><span class="st"> </span><span class="dv">1</span> <span class="op">|</span><span class="st"> </span>catch <span class="op">|</span><span class="st"> </span><span class="dv">0</span> <span class="op">|</span><span class="st"> </span>income, <span class="dt">data=</span>data_gmnl, <span class="dt">model=</span><span class="st">&#39;lc&#39;</span>, <span class="dt">Q=</span><span class="dv">2</span>) <span class="co">#ejecutamos el modelo</span></span></code></pre></div>
 <pre><code>## Estimating LC model</code></pre>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">summary</span>(gmnl_fish) <span class="co">#summary del modelo construido</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">summary</span>(gmnl_fish) <span class="co">#summary del modelo construido</span></span></code></pre></div>
 <pre><code>## 
-## Model estimated on: mar. jun. 15 8:51:26 p. m. 2021 
+## Model estimated on: mié. jun. 16 2:16:45 a. m. 2021 
 ## 
 ## Call:
 ## gmnl(formula = mode ~ price | 1 | catch | 0 | income, data = data_gmnl, 
@@ -1841,7 +1926,7 @@ pre code {
 ##   beach    boat charter    pier 
 ## 0.11337 0.35364 0.38240 0.15059 
 ## 
-## The estimation took: 0h:0m:2s 
+## The estimation took: 0h:0m:5s 
 ## 
 ## Coefficients:
 ##                                Estimate  Std. Error z-value  Pr(&gt;|z|)    
@@ -1871,9 +1956,15 @@ pre code {
 ## Number of observations: 1182
 ## Number of iterations: 177
 ## Exit of MLE: successful convergence</code></pre>
+<p>Para la clase 1, los encuestados poseen preferencias base. Ellos prefieren <em>charter</em> y <em>pier</em> por sobre <em>beach</em> de manera sigificativa. Es más, prefieren <em>charter</em> por sobre todos, seguido de <em>pier</em>. Sin embargo, para la clase 2 no existen valores significativos de preferencias base, lo que puede significar que en general los encuestados de la clase 2 no tienen una preferencia base diferenciable.</p>
+<p>Al igual que en las partes anteriores, ambas clases son sensibles al precio: de manera significativa, el aumento del precio de alguno de los modos disminuye la preferencia por ese modo, siendo entonces la elasticidad precio de la demanda negativa. Sin embargo, la clase 1 es más sensible al precio que la clase 2.</p>
+<p>Sobre la probabilidad de pesca, <em>boat</em> es el más preferido por la clase 1 seguido por <em>beach</em> y <em>pier</em>, este último con una magnitud un poco mayor a la mitad de <em>boat</em>. Más atrás se encuentra <em>charter</em> con un coeficiente ligeramente mayor a 1. Sin embargo, los resultados sobre <em>pier</em> no son significativos. Para la clase 2, solo <em>boat</em> es significativo (al 95%), e indica que <em>boat</em> es menos preferido frente a un aumento de la probabilidad de pesca al ser el coeficiente negativo.</p>
+<p>Finalmente, se puede señalar que la clase 2 es más pequeña que la clase 1 con un 90% de significancia. Además, con un 90% de significancia se puede señalar que es poco probable que se asigne a una persona a la clase 2 si posee un alto ingreso, lo que quiere decir que personas de alto ingreso son asignadas a la clase 1.</p>
 <ol start="4" style="list-style-type: decimal">
 <li>En base a sus resultados de al menos una sugerencia comercial al equipo de emprendedores.</li>
 </ol>
+<p><strong>R.: </strong> Según los modelos realizados, se puede concluir que los usuarios de altos ingresos prefieren la opción <em>charter</em>, por lo tanto se recomienda que se dirijan estos modos de pesca a usuarios con mayores ingresos. También se concluye que usuarios de altos ingresos que deseen una alta probabilidad de pesca elegirán la opción <em>boat</em>, mientras que aquellos de menores ingresos rechazan esta alternativa si desean altas probabilidades de pesca.</p>
+<p>Cabe destacar que los usuarios de alto ingreso son más sensibles al precio debido a que tienen más oportunidades de escoger y el precio de sus opciones varía mucho más. Los usuarios de ingresos más bajos no suelen escoger opciones costosas, lo que los hace menos sensibles al precio. Por lo tanto, se debe procurar no elevar demasiado los precios de las opciones <em>charter</em> y <em>boat</em>.</p>
 </div>
 </div>
 

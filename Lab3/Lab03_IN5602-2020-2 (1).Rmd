@@ -1,7 +1,7 @@
 ---
 title: "Laboratorio de Modelos de Elección Discreta"
-author: "Gabriela Mora"
-date: "09-06-2021"
+author: "Felipe Jorquera Díaz, Constanza Peña Soto, Matías Salinas Muñoz"
+date: "16-06-2021"
 output:
   html_document:
     df_print: paged
@@ -41,7 +41,7 @@ head(Fishing, 5)
 
 1. Usando la librería _mlogit_, estime un modelo logit e interprete sus resultados.
 
-```{r ,message=FALSE}
+```{r P1,message=FALSE}
 
 Fish <- mlogit.data(Fishing, shape="wide", varying=2:9, choice="mode")
 
@@ -51,8 +51,10 @@ summary(logit_Fish)
 
 ```
 
+Para comenzar, los encuestados prefirieron _charter_ un 38,24% de las veces, y _boat_ un 35,36% de las veces. Atrás quedan _pier_ y _beach_, con un 15,06% y 11,34% de las veces.
+
 La variable base utilizada es _beach_, por lo cual todos los resultados están calculados en relación a aquella modalidad.
-Los interceptos de _charter_, _boat_ y _pier_ son positivos y significativos lo que significa que las personas prefieren más a estos modos en relación a _beach_. Notar que estas preferencias son base y no dependen de ningún atributo.
+Los interceptos de _charter_, _boat_ y _pier_ son positivos y significativos lo que significa que las personas prefieren más a estos modos en relación a _beach_. Es más, los encuestados prefieren _charter_, seguido de _pier_ y _boat_, con _beach_ en el último lugar. Notar que estas preferencias son base y no dependen de ningún atributo.
 
 Con respecto al precio, un aumento en dicha variable trae consigo una reducción en la preferencia de algún modo de turismo. Esto es relativamente lógico ya que mientras más costoso sea algo, entonces tiene una menor demanda.
 
@@ -85,26 +87,32 @@ ggplot(Fishing_long, aes(x=price, fill=modalidad))+
 
 2. Usando la librería _mlogit_, estime un modelo probit e interprete sus resultados incluyendo los valores de la matriz de varianza covarianza"
 
-```{r ,message=FALSE}
-#probit_Fish <- mlogit(formula = mode ~ price + income + catch, data = Fish,
-#                      alt.subset = c("charter", "boat", "pier"), probit = TRUE)
+```{r P2 probit,message=FALSE}
+probit_Fish <- mlogit(mode~price | income | catch, data = Fish,
+                      #alt.subset = c("charter", "boat", "pier"), 
+                      probit = TRUE, print.level=1)
 
-#summary(probit_Fish)
+summary(probit_Fish)
+```
+
+
+
+```{r P2 covarianza,message=FALSE}
 
 # Tomando el output del probit calculado, creamos una matriz de ceros:
 #C <- matrix(0, 3, 3) 
-# rellenamos la matriz triangular inferior con los coeficientes del output. Se debe fijar las posiciones, en mi ejemplo, coeficientes 6 a 10 del output
+#rellenamos la matriz triangular inferior con los coeficientes del output. Se debe fijar las posiciones, en mi ejemplo, coeficientes 6 a 10 del output
 #C[!upper.tri(C)] <- c(1, coef(Probit)[4:10])
 ```
 
 3. Usando la librería _gmnl_ Construya un modelo con 2 clases latentes e interprete sus resultados.
 
 ```{r ,message=FALSE, warning=FALSE, incluide=FALSE}
-detach("package:mlogit", unload=TRUE)
-install.packages("https://cran.r-project.org/src/contrib/Archive/mlogit/mlogit_1.0-2.tar.gz", repos=NULL,type="source")
+#detach("package:mlogit", unload=TRUE)
+#install.packages("https://cran.r-project.org/src/contrib/Archive/mlogit/mlogit_1.0-2.tar.gz", repos=NULL,type="source")
 ```
 
-```{r ,message=FALSE}
+```{r P3,message=FALSE}
 
 library(gmnl) #cargamos las librerías a utilizar
 library(mlogit)
@@ -116,10 +124,20 @@ gmnl_fish <- gmnl(mode ~ price | 1 | catch | 0 | income, data=data_gmnl, model='
 summary(gmnl_fish) #summary del modelo construido
 
 ```
+Para la clase 1, los encuestados poseen preferencias base. Ellos prefieren _charter_ y _pier_ por sobre _beach_ de manera sigificativa. Es más, prefieren _charter_ por sobre todos, seguido de _pier_. Sin embargo, para la clase 2 no existen valores significativos de preferencias base, lo que puede significar que en general los encuestados de la clase 2 no tienen una preferencia base diferenciable.
+
+Al igual que en las partes anteriores, ambas clases son sensibles al precio: de manera significativa, el aumento del precio de alguno de los modos disminuye la preferencia por ese modo, siendo entonces la elasticidad precio de la demanda negativa. Sin embargo, la clase 1 es más sensible al precio que la clase 2.
+
+Sobre la probabilidad de pesca, _boat_ es el más preferido por la clase 1 seguido por _beach_ y _pier_, este último con una magnitud un poco mayor a la mitad de _boat_. Más atrás se encuentra _charter_ con un coeficiente ligeramente mayor a 1. Sin embargo, los resultados sobre _pier_ no son significativos. Para la clase 2, solo _boat_ es significativo (al 95%), e indica que _boat_ es menos preferido frente a un aumento de la probabilidad de pesca al ser el coeficiente negativo.
+
+Finalmente, se puede señalar que la clase 2 es más pequeña que la clase 1 con un 90% de significancia. Además, con un 90% de significancia se puede señalar que es poco probable que se asigne a una persona a la clase 2 si posee un alto ingreso, lo que quiere decir que personas de alto ingreso son asignadas a la clase 1.
+
 
 4. En base a sus resultados de al menos una sugerencia comercial al equipo de emprendedores. 
 
+**R.: ** Según los modelos realizados, se puede concluir que los usuarios de altos ingresos prefieren la opción _charter_, por lo tanto se recomienda que se dirijan estos modos de pesca a usuarios con mayores ingresos. También se concluye que usuarios de altos ingresos que deseen una alta probabilidad de pesca elegirán la opción _boat_, mientras que aquellos de menores ingresos rechazan esta alternativa si desean altas probabilidades de pesca. 
 
+Cabe destacar que los usuarios de alto ingreso son más sensibles al precio debido a que tienen más oportunidades de escoger y el precio de sus opciones varía mucho más. Los usuarios de ingresos más bajos no suelen escoger opciones costosas, lo que los hace menos sensibles al precio. Por lo tanto, se debe procurar no elevar demasiado los precios de las opciones _charter_ y _boat_.
 
 
 
