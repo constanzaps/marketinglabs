@@ -74,7 +74,7 @@ library(dplyr)
 library(gridExtra)
 #library(lubridate)
 library(grid)
-#library(GGally)
+library(GGally) ## ggcorr
 #library(psych)
 library(corrplot)
 library(ggpubr)
@@ -86,7 +86,6 @@ library(glmnet)
 library(inspectdf)
 library(plyr)
 library(reshape2)
-library(ggcorrplot)
 
 library(mlogit)
 library(gmnl)
@@ -99,7 +98,7 @@ library(gmnl)
 path <-'C:/Users/Asus/Desktop/Noveno semestre/mkt/TAREA 2/'
 #path <-'C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_2/'
 anime <- read.csv(paste0(path,"anime.csv"))
-
+anime <- anime[-c(1)]
 anime$Expertos <-as.numeric(anime$Expertos)
 anime$Capitulos <-as.factor(anime$Capitulos)
 anime$Mujer <-as.factor(anime$Mujer)
@@ -111,13 +110,14 @@ anime$Animes[anime$Animes==3] <- "N"
 anime$Animes[anime$Animes==4] <- "BNHA"
 anime$Elegido<-  as.factor(anime$Elegido)
 summary(anime)
+anime
 ```
 
 Si bien al estar la base en formato long pierde sentido ver las correlaciones de la mayoría de las variables, es interesante observar como se correlaciona "Elección" con las demás. En particular se puede observar que está correlacionada de forma positiva con "RatingTV", y de forma negativa con la duración del capítulo, el número de escenas de combate y curiosamente con la calidad de la animación.
 
 ```{r, fig.width=6, fig.height=3, dpi=200, echo=FALSE}
 nums <- subset(anime[ ,unlist(lapply(anime, is.numeric))],
-               select=-c(CantCaps,Edad,Expertos,Scoremyanimelist,Mujer,Capitulos)) #Animes,
+               select=-c(CantCaps,Edad,Expertos,Scoremyanimelist)) #Animes,
 ggcorr(cor(nums), hjust = 1, size = 4,low = "#56b1f7", mid = "white", high = "#132b43",layout.exp = 3,label = TRUE, label_size = 4, label_round = 2)
 ```
 ```{r, fig.width=9, fig.height=3, dpi=200, echo=FALSE}
@@ -175,10 +175,19 @@ ggarrange(Elegidos.hist,ggarrange(Mujer.hist,Edad.hist, nrow=2, ncol=1),Duracion
 Se pueden observar unas diferencias más notorias al controlar por género y edad. Viendo que el anime más votado es HunterxHunter para ambos géneros, con diferencias en las edades que los prefieren.
 ```{r, fig.width=8, fig.height=4, echo=FALSE}
 ggplot(anime1, aes(x=Edad, fill=factor(Elegido))) + geom_histogram(bins = 20)+
-  facet_wrap(Mujer~Elegido,nrow=2)+ scale_fill_manual(values = c("#56b1f7", "#4793cf", 
-
-                                                                     "#3e81b6", "#28547a", "#132b43"))
+  facet_wrap(Mujer~Elegido,nrow=2)+ scale_fill_manual(values = c("#56b1f7", "#4793cf", "#3e81b6", "#28547a", "#132b43"))
 ```
+
+```{r, fig.width=9, fig.height=4, dpi=200, echo=FALSE}
+table(anime1$Capitulos,anime1$Elegido)
+  
+ggplot(anime1, aes(x =factor(Capitulos) ,y=Elegido, color=factor(Elegido), group=factor(Elegido))) + geom_point(size=5) + ggtitle('Animes elegidos por capítulo')+ scale_fill_manual(values = c("#56b1f7", "#4793cf", 
+    "#3e81b6", "#28547a", "#132b43"))
+
+```
+
+
+
 
 Finalmente para obtener las características de cada capítulo por anime, podemos quitar las variables que caracterizan a los expertos y su elección y quitar duplicados. Con esto obtenemos un data frame que caracteriza a los 4 anime en sus 12 capítulos (ie, 48 filas).
 
@@ -190,6 +199,9 @@ calidad.cap <- ggplot(anime2, aes(x =factor(Capitulos) ,y=CalidadAnimacion, colo
 rating.cap<- ggplot(anime2, aes(x =factor(Capitulos) ,y=RatingTV,color=factor(Animes), group=factor(Animes))) + geom_line(size=1)+ ggtitle('Rating TV por capítulo')
 ggarrange(calidad.cap,rating.cap, nrow=2, ncol=1)
 ```
+
+
+
 ```{r, fig.width=9, fig.height=4, dpi=200, echo=FALSE}
 nemcoionantes.cap <-ggplot(anime2, aes(x =factor(Capitulos) ,y=NescenasEmocionantes,color=factor(Animes), group=factor(Animes))) + geom_line(size=1)+ ggtitle('Escenas emocionantes por capítulo')
 ncombate.cap <-ggplot(anime2, aes(x =factor(Capitulos) ,y=NEscenasCombate,color=factor(Animes), group=factor(Animes))) + geom_line(size=1)+ ggtitle('Escenas de combate por capítulo')
