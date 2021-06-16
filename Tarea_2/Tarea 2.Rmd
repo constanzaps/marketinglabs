@@ -100,6 +100,7 @@ anime <- anime[-c(1)]
 anime$Expertos <-as.numeric(anime$Expertos)
 anime$Capitulos <-as.factor(anime$Capitulos)
 anime$Mujer <-as.factor(anime$Mujer)
+anime$Animes <-as.factor(anime$Animes)
 #anime$Elegido<-  as.factor(anime$Elegido)
 
 # anime$Animes[anime$Animes==1] <- "HxH"
@@ -150,7 +151,8 @@ an <- anime
 an$Elegido <- an$Animes*an$Eleccion
 anime1 <- an[an$Eleccion == 1, ]
 anime1 <- subset(anime1, select=-c(Eleccion,Animes))
-dim(anime1)
+anime1
+summary(anime1)
 ```
 
 
@@ -169,13 +171,13 @@ cate_expertos <- unique(subset(anime1,select=c(Expertos, Mujer, Edad)))
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
  
   Edad.hist <- ggplot(cate_expertos, aes(x=Edad, fill=..count..))+
-  geom_histogram(bins= 30)+
+  geom_histogram(bins= 5)+
   labs(x = 'Edad (min)', y = 'Count', title = 'Edad: Histograma ')+
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
   
 
  DuracionCapituloMin.hist <- ggplot(anime1, aes(x=DuracionCapituloMin, fill=..count..))+
-  geom_histogram(bins= 10)+
+  geom_histogram(bins= 5)+
   labs(x = 'Duración (min)', y = 'Count', title = 'Duración de capítulos: Histograma ')+
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
  
@@ -184,13 +186,14 @@ ggarrange(Elegidos.hist,ggarrange(Mujer.hist,Edad.hist, nrow=2, ncol=1),Duracion
 
 Se pueden observar unas diferencias más notorias al controlar por género y edad. Viendo que el anime más votado es HunterxHunter para ambos géneros, con diferencias en las edades que los prefieren.
 ```{r, fig.width=8, fig.height=4, echo=FALSE}
-ggplot(anime1, aes(x=Edad, fill=factor(Elegido))) + geom_histogram(bins = 20)+
+ggplot(anime1, aes(x=Edad, fill=factor(Elegido))) + geom_histogram(bins = 10)+
   facet_wrap(Mujer~Elegido,nrow=2)+ scale_fill_manual(values = c("#56b1f7", "#4793cf", "#3e81b6", "#28547a", "#132b43"))
 ```
 
 ```{r, fig.width=9, fig.height=4, dpi=200, echo=FALSE}
-table(anime1$Capitulos,anime1$Elegido)
-  
+
+tabla <- as.data.frame(table(anime1$Capitulos,anime1$Elegido))
+tabla
 ggplot(anime1, aes(x =factor(Capitulos) ,y=Elegido, color=factor(Elegido), group=factor(Elegido))) + geom_point(size=5) + ggtitle('Animes elegidos por capítulo')+ scale_fill_manual(values = c("#56b1f7", "#4793cf", 
     "#3e81b6", "#28547a", "#132b43"))
 
@@ -204,6 +207,7 @@ Finalmente para obtener las características de cada capítulo por anime, podemo
 Podemos ver que los anime se diferencian bastante al verlos por capítulo, en general no se puede establecer una relación de entre mayor cantidad de capítulos aumente la calidad o el rating en la televisión.
 ```{r, fig.width=9, fig.height=4, dpi=200, echo=FALSE}
 anime2 <- unique(subset(anime,select=-c(Expertos,Edad,Mujer,Eleccion)))
+dim(anime2)
 calidad.cap <- ggplot(anime2, aes(x =factor(Capitulos) ,y=CalidadAnimacion, color=factor(Animes), group=factor(Animes))) + geom_line(size=1) + ggtitle('Calidad de animación por capítulo')+ scale_fill_manual(values = c("#56b1f7", "#4793cf", 
     "#3e81b6", "#28547a", "#132b43"))
 rating.cap<- ggplot(anime2, aes(x =factor(Capitulos) ,y=RatingTV,color=factor(Animes), group=factor(Animes))) + geom_line(size=1)+ ggtitle('Rating TV por capítulo')
@@ -232,14 +236,23 @@ ggcorr(cor(nums), hjust = 1, size = 4,low = "#56b1f7", mid = "white", high = "#1
 (2,0 puntos) Defina un modelo Logit y Mixed Logit multinomiales para estudiar las razones que llevan a un experto a elegir animes. Interprete los coeficientes y calcule la probabilidad de que una mujer de 25 años elija el anime _naruto_ para el modelo logit multinomial.
 
 ```{r P2_l}
-# View(anime)
-# anime
-# 
-# logit_data <- mlogit.data(anime, shape = "long", choice ="Eleccion",id.var = "Expertos")
-# #corremos el modelo
-# 
-# 
-# modelo1<-mlogit(Choice ~ 0| Country + Specialization | 0, data = logit_data)
+logit<- glm(Eleccion ~ .,data=anime, family="binomial" )
+summary(logit)
+```
+
+
+```{r P2_l}
+anime_logit <- anime
+anime_logit$Eleg[anime_logit$Eleccion== 0] <- FALSE
+anime_logit$Eleg[anime_logit$Eleccion== 1] <- TRUE
+anime_logit <- subset(anime_logit, select=-c(Eleccion))
+logit_data <- mlogit.data(anime_logit, shape = "long", choice ="Eleg",id.var = "Expertos")
+#corremos el modelo
+
+
+
+colnames(anime_logit)
+modelo1<-mlogit(Eleg ~ NEscenasCombate + NescenasEmocionantes + RatingTV + CalidadAnimacion + DuracionCapituloMin | Edad + Mujer | Scoremyanimelist + DuracionCapituloMin, data = logit_data)
 ```
 
 ```{r P2_m}
@@ -251,8 +264,11 @@ ggcorr(cor(nums), hjust = 1, size = 4,low = "#56b1f7", mid = "white", high = "#1
 (1,0 puntos) Construya un modelo Probit que capture los elementos de elección principales y comente sobre cómo se interpretan sus coeficientes.
 
 ```{r P3}
-#probit
-
+# #probit
+# library(lmtest)
+probit<- glm(Eleccion ~ .,data=anime, family=binomial(link="probit"))
+# coeftest(probit, vcov. = vcovHC, type = "HC1")
+summary(probit)
 ```
 
 #### Pregunta 4
