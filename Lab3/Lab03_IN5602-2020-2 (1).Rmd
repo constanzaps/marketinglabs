@@ -24,6 +24,7 @@ Un grupo de ex-alumnos/as del IN5602 que hoy se han dedicado a emprender estan c
 ```{r ,message=FALSE}
 #Se limpia el espacio de trabajo
 library(mlogit)
+library(ggplot2)
 rm(list=ls())				# Limpiamos todos los objetos creados en R
 graphics.off()	    # se limpian los graficos 
 
@@ -55,7 +56,7 @@ Los interceptos de _charter_, _boat_ y _pier_ son positivos y significativos lo 
 
 Con respecto al precio, un aumento en dicha variable trae consigo una reducción en la preferencia de algún modo de turismo. Esto es relativamente lógico ya que mientras más costoso sea algo, entonces tiene una menor demanda.
 
-Con respecto a _income_, mientras mayor es el ingreso de las personas entonces optan por preferir _boat_ que _beach_. Además, los coeficientes de _charter_ y _pier_ son negativos, por lo que estos modos de viaje son menos preferidos que _beach_.
+Con respecto a _income_, mientras mayor es el ingreso de las personas entonces optan por preferir _boat_ que _beach_. Además, los coeficientes de _charter_ y _pier_ son negativos, por lo que estos modos de viaje son menos preferidos que _beach_ cuando aumenta el ingreso. Sin embargo, solo lo correspondiente al modo _pier_ es significativo.
 
 Sobre la probabilidad de pesca, _beach_ es el más preferido seguido por _boat_ y _pier_ con una magnitud similar. Muy atrás se encuentra _charter_ con un coeficiente menor a 1.
 
@@ -99,9 +100,20 @@ C[!upper.tri(C)] <- c(1, coef(Probit)[4:10])
 3. Usando la librería _gmnl_ Construya un modelo con 2 clases latentes e interprete sus resultados.
 
 ```{r ,message=FALSE}
-#Escriba el codigo
+detach("package:mlogit", unload=TRUE)
+install.packages("https://cran.r-project.org/src/contrib/Archive/mlogit/mlogit_1.0-2.tar.gz", repos=NULL,type="source")
+```
 
+```{r ,message=FALSE}
 
+library(gmnl) #cargamos las librerías a utilizar
+library(mlogit)
+
+data_gmnl <- mlogit.data(Fishing, shape = "wide", varying = 2:9, choice = "mode", id.var = 'mode') #adecuamos la data al modelo
+
+gmnl_fish <- gmnl(mode ~ price | 1 | catch | 0 | income, data=data_gmnl, model='lc', Q=2) #ejecutamos el modelo
+
+summary(gmnl_fish) #summary del modelo construido
 
 ```
 
