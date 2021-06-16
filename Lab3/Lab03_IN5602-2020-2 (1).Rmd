@@ -25,6 +25,7 @@ Un grupo de ex-alumnos/as del IN5602 que hoy se han dedicado a emprender estan c
 #Se limpia el espacio de trabajo
 library(mlogit)
 library(ggplot2)
+library(gmnl)
 rm(list=ls())				# Limpiamos todos los objetos creados en R
 graphics.off()	    # se limpian los graficos 
 
@@ -45,7 +46,7 @@ head(Fishing, 5)
 
 Fish <- mlogit.data(Fishing, shape="wide", varying=2:9, choice="mode")
 
-logit_Fish <- mlogit(mode~price | income | catch, Fish)
+logit_Fish <- mlogit(mode ~ price + catch| income, Fish)
 
 summary(logit_Fish)
 
@@ -58,9 +59,10 @@ Los interceptos de _charter_, _boat_ y _pier_ son positivos y significativos lo 
 
 Con respecto al precio, un aumento en dicha variable trae consigo una reducción en la preferencia de algún modo de turismo. Esto es relativamente lógico ya que mientras más costoso sea algo, entonces tiene una menor demanda.
 
+Sobre la probabilidad de pesca, _mientras mayor es esta variable entonces mayor será la preferencia por algún modo de pesca.
+
 Con respecto a _income_, mientras mayor es el ingreso de las personas entonces optan por preferir _boat_ que _beach_. Además, los coeficientes de _charter_ y _pier_ son negativos, por lo que estos modos de viaje son menos preferidos que _beach_ cuando aumenta el ingreso. Sin embargo, solo lo correspondiente al modo _pier_ es significativo.
 
-Sobre la probabilidad de pesca, _beach_ es el más preferido seguido por _boat_ y _pier_ con una magnitud similar. Muy atrás se encuentra _charter_ con un coeficiente menor a 1.
 
 ```{r}
 
@@ -88,9 +90,9 @@ ggplot(Fishing_long, aes(x=price, fill=modalidad))+
 2. Usando la librería _mlogit_, estime un modelo probit e interprete sus resultados incluyendo los valores de la matriz de varianza covarianza"
 
 ```{r P2 probit,message=FALSE}
-probit_Fish <- mlogit(mode~price | income | catch, data = Fish,
-                      #alt.subset = c("charter", "boat", "pier"), 
-                      probit = TRUE, print.level=1)
+probit_Fish <- mlogit(formula = mode ~ price | income | catch, data = Fish, 
+                      alt.subset = c("beach", "boat", "pier"),
+                      probit = TRUE)
 
 summary(probit_Fish)
 ```
@@ -114,7 +116,7 @@ summary(probit_Fish)
 
 ```{r P3,message=FALSE}
 
-library(gmnl) #cargamos las librerías a utilizar
+ #cargamos las librerías a utilizar
 library(mlogit)
 
 data_gmnl <- mlogit.data(Fishing, shape = "wide", varying = 2:9, choice = "mode", id.var = 'mode') #adecuamos la data al modelo
