@@ -90,10 +90,8 @@ library(reshape2)
 library(mlogit)
 library(gmnl)
 ```
+Subimos el dataset 
 
-
-
-# Preparación del dataset
 ```{r, include = FALSE}
 path <-'C:/Users/Asus/Desktop/Noveno semestre/mkt/TAREA 2/'
 #path <-'C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_2/'
@@ -102,16 +100,26 @@ anime <- anime[-c(1)]
 anime$Expertos <-as.numeric(anime$Expertos)
 anime$Capitulos <-as.factor(anime$Capitulos)
 anime$Mujer <-as.factor(anime$Mujer)
+#anime$Elegido<-  as.factor(anime$Elegido)
 
-anime$Elegido <- anime$Animes*anime$Eleccion
-anime$Animes[anime$Animes==1] <- "HxH"
-anime$Animes[anime$Animes==2] <- "DB"
-anime$Animes[anime$Animes==3] <- "N"
-anime$Animes[anime$Animes==4] <- "BNHA"
-anime$Elegido<-  as.factor(anime$Elegido)
+# anime$Animes[anime$Animes==1] <- "HxH"
+# anime$Animes[anime$Animes==2] <- "DB"
+# anime$Animes[anime$Animes==3] <- "N"
+# anime$Animes[anime$Animes==4] <- "BNHA"
+
 summary(anime)
 anime
 ```
+
+
+## Desarrollo
+
+Documenta acá el desarrollo de tu tarea por pregunta.
+
+#### Pregunta 1
+
+(0 puntos) Explore los datos para poder entender qué variables podrían ser más influyentes en el hecho de que un experto elija un anime. 
+
 
 Si bien al estar la base en formato long pierde sentido ver las correlaciones de la mayoría de las variables, es interesante observar como se correlaciona "Elección" con las demás. En particular se puede observar que está correlacionada de forma positiva con "RatingTV", y de forma negativa con la duración del capítulo, el número de escenas de combate y curiosamente con la calidad de la animación.
 
@@ -138,7 +146,9 @@ ggarrange(comba.anim,emocio.anim, nrow=1, ncol=2)
 
 Luego, podemos filtrar el dataset, obteniendo solamente un dataset con las elecciones que hizo el participante para determinado capítulo, esto nos entrega un dataset donde 1000 participantes entregan sus preferencias para cada capítulo (en total 12).
 ```{r}
-anime1 <- anime[anime$Eleccion == 1, ]
+an <- anime
+an$Elegido <- an$Animes*an$Eleccion
+anime1 <- an[an$Eleccion == 1, ]
 anime1 <- subset(anime1, select=-c(Eleccion,Animes))
 dim(anime1)
 ```
@@ -193,7 +203,7 @@ Finalmente para obtener las características de cada capítulo por anime, podemo
 
 Podemos ver que los anime se diferencian bastante al verlos por capítulo, en general no se puede establecer una relación de entre mayor cantidad de capítulos aumente la calidad o el rating en la televisión.
 ```{r, fig.width=9, fig.height=4, dpi=200, echo=FALSE}
-anime2 <- unique(subset(anime,select=-c(X,Expertos,Edad,Mujer,Eleccion,Elegido)))
+anime2 <- unique(subset(anime,select=-c(Expertos,Edad,Mujer,Eleccion)))
 calidad.cap <- ggplot(anime2, aes(x =factor(Capitulos) ,y=CalidadAnimacion, color=factor(Animes), group=factor(Animes))) + geom_line(size=1) + ggtitle('Calidad de animación por capítulo')+ scale_fill_manual(values = c("#56b1f7", "#4793cf", 
     "#3e81b6", "#28547a", "#132b43"))
 rating.cap<- ggplot(anime2, aes(x =factor(Capitulos) ,y=RatingTV,color=factor(Animes), group=factor(Animes))) + geom_line(size=1)+ ggtitle('Rating TV por capítulo')
@@ -212,31 +222,24 @@ En los gráficos anteriores se puede observar que en lineas generales las escena
 Esto lo confirmamos en la siguiente matriz de correlación, donde además se puede observar que existe una correlación negativa entre la calidad de la animación y el rating que tiene en televisión.
 ```{r, fig.width=6, fig.height=3, dpi=200, echo=FALSE}
 nums <- subset(anime2[ ,unlist(lapply(anime2, is.numeric))],
-               select=-c(Capitulos,CantCaps)) #Animes,
+               select=-c(CantCaps, Animes)) #Animes,
 ggcorr(cor(nums), hjust = 1, size = 4,low = "#56b1f7", mid = "white", high = "#132b43",layout.exp = 3,label = TRUE, label_size = 4, label_round = 2)
 ```
 
-
-
-## Desarrollo
-
-Documenta acá el desarrollo de tu tarea por pregunta.
-
-#### Pregunta 1
-
-(0 puntos) Explore los datos para poder entender qué variables podrían ser más influyentes en el hecho de que un experto elija un anime. 
-```{r P1}
-#Exploración de datos
-
-```
 
 #### Pregunta 2
 
 (2,0 puntos) Defina un modelo Logit y Mixed Logit multinomiales para estudiar las razones que llevan a un experto a elegir animes. Interprete los coeficientes y calcule la probabilidad de que una mujer de 25 años elija el anime _naruto_ para el modelo logit multinomial.
 
 ```{r P2_l}
-#logit
-
+# View(anime)
+# anime
+# 
+# logit_data <- mlogit.data(anime, shape = "long", choice ="Eleccion",id.var = "Expertos")
+# #corremos el modelo
+# 
+# 
+# modelo1<-mlogit(Choice ~ 0| Country + Specialization | 0, data = logit_data)
 ```
 
 ```{r P2_m}
