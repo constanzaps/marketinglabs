@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Un grupo de ex-alumnos/as del IN5602 que hoy se han dedicado a emprender estan considerando crear un servicio de turismo basado en la pesca recreativa. Para entender el comportamiento de los clientes y así poder planificar las estregias de venta, una integrante de este grupo de emprendedores implementó una encuesta para entender las preferencias de los clientes. La encuesta fue contestada por una muestra de 1182 personas quienes eligieron su modalidad de pesca preferido entre 4 modos distintos. La encuesta incluye la opción escogida (beach, pier, boat, charter) el precio por alternativa de modo de pesca (*price*), la tasa de pesca por opción (*catch*) y por último, el ingreso de cada individuo (*income*).
 
-```{r ,message=FALSE}
+```{r ,message=FALSE, warning=FALSE}
 #Se limpia el espacio de trabajo
 library(mlogit)
 library(ggplot2)
@@ -86,20 +86,20 @@ ggplot(Fishing_long, aes(x=price, fill=modalidad))+
 2. Usando la librería _mlogit_, estime un modelo probit e interprete sus resultados incluyendo los valores de la matriz de varianza covarianza"
 
 ```{r ,message=FALSE}
-probit_Fish <- mlogit(formula = mode ~ price + income + catch, data = Fish,
-                      alt.subset = c("charter", "boat", "pier"), probit = TRUE)
+#probit_Fish <- mlogit(formula = mode ~ price + income + catch, data = Fish,
+#                      alt.subset = c("charter", "boat", "pier"), probit = TRUE)
 
-summary(probit_Fish)
+#summary(probit_Fish)
 
 # Tomando el output del probit calculado, creamos una matriz de ceros:
-C <- matrix(0, 3, 3) 
+#C <- matrix(0, 3, 3) 
 # rellenamos la matriz triangular inferior con los coeficientes del output. Se debe fijar las posiciones, en mi ejemplo, coeficientes 6 a 10 del output
-C[!upper.tri(C)] <- c(1, coef(Probit)[4:10])
+#C[!upper.tri(C)] <- c(1, coef(Probit)[4:10])
 ```
 
 3. Usando la librería _gmnl_ Construya un modelo con 2 clases latentes e interprete sus resultados.
 
-```{r ,message=FALSE}
+```{r ,message=FALSE, warning=FALSE, incluide=FALSE}
 detach("package:mlogit", unload=TRUE)
 install.packages("https://cran.r-project.org/src/contrib/Archive/mlogit/mlogit_1.0-2.tar.gz", repos=NULL,type="source")
 ```
