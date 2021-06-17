@@ -263,7 +263,7 @@ AnimeWide$Eleccion=max.col(consolidated)
 
 AnimeWide = AnimeWide %>% select(-contains("Eleccion."))
 myf <- mlogit.data(AnimeWide, shape = "wide", varying=3:38, sep=".", choice="Eleccion", id=names(AnimeWide)[1:2])
-modelo1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + RatingTV| Edad + Mujer |0, data = myf)
+modelo1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + RatingTV| Edad+Mujer |0, data = myf) #La wea no cambia nada si quitar hombre mujer
 summary(modelo1)
 ```
 
