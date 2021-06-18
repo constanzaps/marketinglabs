@@ -21,6 +21,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Un grupo de ex-alumnos/as del IN5602 que hoy se han dedicado a emprender estan considerando crear un servicio de turismo basado en la pesca recreativa. Para entender el comportamiento de los clientes y así poder planificar las estregias de venta, una integrante de este grupo de emprendedores implementó una encuesta para entender las preferencias de los clientes. La encuesta fue contestada por una muestra de 1182 personas quienes eligieron su modalidad de pesca preferido entre 4 modos distintos. La encuesta incluye la opción escogida (beach, pier, boat, charter) el precio por alternativa de modo de pesca (*price*), la tasa de pesca por opción (*catch*) y por último, el ingreso de cada individuo (*income*).
 
+```{r ,message=FALSE, warning=FALSE, incluide=FALSE}
+#detach("package:mlogit", unload=TRUE)
+install.packages("https://cran.r-project.org/src/contrib/Archive/mlogit/mlogit_1.0-2.tar.gz", repos=NULL,type="source")
+```
+
 ```{r ,message=FALSE, warning=FALSE}
 #Se limpia el espacio de trabajo
 library(mlogit)
@@ -46,7 +51,7 @@ head(Fishing, 5)
 
 Fish <- mlogit.data(Fishing, shape="wide", varying=2:9, choice="mode")
 
-logit_Fish <- mlogit(mode ~ price + catch| income, Fish)
+logit_Fish <- mlogit(mode ~ price + catch| income, Fish, reflevel = 'charter')
 
 summary(logit_Fish)
 
@@ -54,71 +59,47 @@ summary(logit_Fish)
 
 Para comenzar, los encuestados prefirieron _charter_ un 38,24% de las veces, y _boat_ un 35,36% de las veces. Atrás quedan _pier_ y _beach_, con un 15,06% y 11,34% de las veces.
 
-La variable base utilizada es _beach_, por lo cual todos los resultados están calculados en relación a aquella modalidad.
-Los interceptos de _charter_, _boat_ y _pier_ son positivos y significativos lo que significa que las personas prefieren más a estos modos en relación a _beach_. Es más, los encuestados prefieren _charter_, seguido de _pier_ y _boat_, con _beach_ en el último lugar. Notar que estas preferencias son base y no dependen de ningún atributo.
+La variable base utilizada es _charter_, por lo cual todos los resultados están calculados en relación a aquella modalidad.
+Los interceptos de _beach_, _boat_ y _pier_ son negativos y significativos lo que significa que las personas prefieren menos a estos modos en relación a _charter_. Es más, los encuestados prefieren _charter_, seguido de _pier_ y _boat_, con _beach_ en el último lugar. Notar que estas preferencias son base y no dependen de ningún atributo.
 
 Con respecto al precio, un aumento en dicha variable trae consigo una reducción en la preferencia de algún modo de turismo. Esto es relativamente lógico ya que mientras más costoso sea algo, entonces tiene una menor demanda.
 
 Sobre la probabilidad de pesca, _mientras mayor es esta variable entonces mayor será la preferencia por algún modo de pesca.
 
-Con respecto a _income_, mientras mayor es el ingreso de las personas entonces optan por preferir _boat_ que _beach_. Además, los coeficientes de _charter_ y _pier_ son negativos, por lo que estos modos de viaje son menos preferidos que _beach_ cuando aumenta el ingreso. Sin embargo, solo lo correspondiente al modo _pier_ es significativo.
-
-
-```{r}
-
-#Transformamos la data de wide a long
-Fishing_long <- reshape(Fishing, direction = "long",
-                        varying = list(price = 2:5, catch = 6:9),
-                        v.names = c("price", "catch"),
-                        timevar = "modalidad")
-n_order <- order(Fishing_long$id, Fishing_long$modalidad)
-Fishing_long <- Fishing_long[n_order,]
-
-#Codificamos las opciones
-Fishing_long$mode <- as.character(Fishing_long$mode)
-Fishing_long$modalidad[which(Fishing_long$modalidad==1)] <- "beach"
-Fishing_long$modalidad[which(Fishing_long$modalidad==2)] <- "pier"
-Fishing_long$modalidad[which(Fishing_long$modalidad==3)] <- "boat"
-Fishing_long$modalidad[which(Fishing_long$modalidad==4)] <- "charter"
-
-ggplot(Fishing_long, aes(x=price, fill=modalidad))+
-  geom_histogram(alpha=0.7, position="identity", bins=100)+
-  scale_x_log10()
-```
+Con respecto a _income_, mientras mayor es el ingreso de las personas entonces optan por preferir _boat_, seeguido por  _beach_, _charter_ y _boat_ en último lugar. Además, el coeficiente de _pier_ es negativo, por lo que este modo de viaje es menos preferido que _charter_ cuando aumenta el ingreso.
 
 
 2. Usando la librería _mlogit_, estime un modelo probit e interprete sus resultados incluyendo los valores de la matriz de varianza covarianza"
 
 ```{r P2 probit,message=FALSE}
-probit_Fish <- mlogit(formula = mode ~ price | income | catch, data = Fish, 
-                      alt.subset = c("beach", "boat", "pier"),
-                      probit = TRUE)
+probit_Fish <- mlogit(mode ~ price + catch| income, Fish, probit=TRUE,
+                      reflevel = 'charter')
 
 summary(probit_Fish)
 ```
 
-
+Los resultados son bastante similares en relación al signo de los coeficientes. EL modelo indica que _charter_ es el modelo más preferido (de base) según el signo de los interceptos. _price_ vuelve a tener un signo negativo y _catch_ el signo positivo, al igual que logit.
+Sobre _income_ los coeficientes tienden a variar pero los signos se mantienen. Mientras más ingresos entonces menor es la preferencia por _pier_, caso contrario con _beach_ y _boat_.
 
 ```{r P2 covarianza,message=FALSE}
 
-# Tomando el output del probit calculado, creamos una matriz de ceros:
-#C <- matrix(0, 3, 3) 
-#rellenamos la matriz triangular inferior con los coeficientes del output. Se debe fijar las posiciones, en mi ejemplo, coeficientes 6 a 10 del output
-#C[!upper.tri(C)] <- c(1, coef(Probit)[4:10])
+#Ocupamos el hint del foro
+C <- matrix(0, 3, 3) 
+C[!upper.tri(C)] <- c(1, coef(probit_Fish)[9:13])
+
+V = C %*% t(C) 
+V
 ```
+Sinceramente, no sabemos como interpretarlo :(.
+
 
 3. Usando la librería _gmnl_ Construya un modelo con 2 clases latentes e interprete sus resultados.
 
-```{r ,message=FALSE, warning=FALSE, incluide=FALSE}
-#detach("package:mlogit", unload=TRUE)
-#install.packages("https://cran.r-project.org/src/contrib/Archive/mlogit/mlogit_1.0-2.tar.gz", repos=NULL,type="source")
-```
+
 
 ```{r P3,message=FALSE}
-
- #cargamos las librerías a utilizar
-library(mlogit)
-
+#library(mlogit)
+#library(gmnl)
 data_gmnl <- mlogit.data(Fishing, shape = "wide", varying = 2:9, choice = "mode", id.var = 'mode') #adecuamos la data al modelo
 
 gmnl_fish <- gmnl(mode ~ price | 1 | catch | 0 | income, data=data_gmnl, model='lc', Q=2) #ejecutamos el modelo
@@ -140,7 +121,3 @@ Finalmente, se puede señalar que la clase 2 es más pequeña que la clase 1 con
 **R.: ** Según los modelos realizados, se puede concluir que los usuarios de altos ingresos prefieren la opción _charter_, por lo tanto se recomienda que se dirijan estos modos de pesca a usuarios con mayores ingresos. También se concluye que usuarios de altos ingresos que deseen una alta probabilidad de pesca elegirán la opción _boat_, mientras que aquellos de menores ingresos rechazan esta alternativa si desean altas probabilidades de pesca. 
 
 Cabe destacar que los usuarios de alto ingreso son más sensibles al precio debido a que tienen más oportunidades de escoger y el precio de sus opciones varía mucho más. Los usuarios de ingresos más bajos no suelen escoger opciones costosas, lo que los hace menos sensibles al precio. Por lo tanto, se debe procurar no elevar demasiado los precios de las opciones _charter_ y _boat_.
-
-
-
-
