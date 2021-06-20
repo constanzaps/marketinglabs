@@ -338,14 +338,17 @@ Quitar:
 modelo3<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV + DuracionCapituloMin| Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
 summary(modelo3)
 ```
+
 ```{r}
 modelo5<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ DuracionCapituloMin | log(Edad) + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
 summary(modelo5)
 ```
+
 ```{r}
 modelo5<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ DuracionCapituloMin | log(Edad) + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
 summary(modelo5)
 ```
+
 ```{r}
 modelo6<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| log(Edad) + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
 summary(modelo6)
@@ -355,7 +358,6 @@ summary(modelo6)
 modelo7<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion + RatingTV| Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
 summary(modelo7)
 ```
-
 
 ```{r}
 modelo8<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
