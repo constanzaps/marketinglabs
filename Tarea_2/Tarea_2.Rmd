@@ -340,7 +340,7 @@ summary(modelo2)
 ```
 
 - Mixed logit *sin correlación*
-```{r P2_m, echo=FALSE}
+```{r P2_m1, echo=FALSE}
 # MIXED LOGIT without correlation
 
 model_mxlogit.v1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
@@ -353,7 +353,7 @@ rpar(model_mxlogit.v1)
 ```
 
 - Mixed logit *con correlación*
-```{r P2_m, echo=FALSE}
+```{r P2_m2, echo=FALSE}
 # MIXED LOGIT with correlation
 model_mxlogit.v2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
                         +RatingTV| Edad + Mujer | 0, data = myftrain,
