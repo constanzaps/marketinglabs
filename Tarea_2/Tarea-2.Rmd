@@ -5,7 +5,7 @@
 <div style="text-align: right">**Auxs**: R. Cerda, JP. Coddou, G.Mora, F. Moraga, A .Muñoz</div>
 
 ---
-title:  'Tarea 2 Semestre Otoño 2021'
+title:  'Tarea 2 - Semestre Otoño 2021'
 author: 'Nombres'
 date:   '2 de junio de 2021'
 output:
