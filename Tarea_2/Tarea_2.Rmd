@@ -285,7 +285,9 @@ logit<- glm(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacio
 summary(logit)
 ```
 Arreglamos el data set en formato mlogit:
-```{r}
+
+```{r, echo=FALSE}
+set.seed(123456789)
 anime <- subset(anime, select=-c(Elegido))
 AnimeWide <- reshape(data=as.data.frame(anime), idvar=names(anime)[1:2],
                      v.names=names(anime)[4:13],
@@ -298,53 +300,69 @@ AnimeWide$Eleccion=max.col(consolidated)
 AnimeWide = AnimeWide %>% select(-contains("Eleccion."))
 
 myf <- mlogit.data(AnimeWide, shape = "wide", varying=3:38, sep=".", choice="Eleccion", id=names(AnimeWide)[1:2])
+
+#Pasar a wide la base
+AnimeWide <- reshape(data=as.data.frame(anime),idvar=names(anime)[1:2],
+                  v.names = names(anime)[4:13],
+                  timevar = "Animes",
+                  direction="wide")
+
+consolidated=as.matrix(cbind(AnimeWide$Eleccion.1,AnimeWide$Eleccion.2,AnimeWide$Eleccion.3,AnimeWide$Eleccion.4))
+AnimeWide$Eleccion=NA
+AnimeWide$Eleccion=max.col(consolidated)
+
+AnimeWide = AnimeWide %>% select(-contains("Eleccion."))
+
+#Dividimos la base en train y test
+
+AnimeWideTrain = AnimeWide %>% group_by(Expertos) %>% sample_frac(0.7)
+
+AnimeWideTest = anti_join(AnimeWide, AnimeWideTrain, by=c("Expertos","Capitulos"))
+
+# Usamos mlogit.data() para formatear ambas bases
+##train
+myftrain <- mlogit.data(AnimeWideTrain, shape="wide", varying=3:38, sep="." ,choice="Eleccion", id = names(AnimeWide)[1:2])
+
+## test
+myftest <- mlogit.data(AnimeWideTest, shape="wide", varying=3:38, sep="." ,choice="Eleccion", id = names(AnimeWide)[1:2])
 ```
 
-Mlogit con interacción
+- Mlogit con interacción
 ```{r}
-modelo1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV+NescenasEmocionantes*RatingTV| 1 | 0, data = myf, print.level=1) #La wea no cambia nada si quitar 
-
+modelo1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV+NescenasEmocionantes*RatingTV| Edad + Mujer | 0, data = myftrain, print.level=1) 
 summary(modelo1)
 ```
 
-Mlogit sin interacción
+- Mlogit sin interacción
 ```{r}
-modelo2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV| 1 | 0, data = myf, print.level=1) #La wea no cambia nada si quitar 
-
+modelo2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV| Edad + Mujer | 0, data = myftrain, print.level=1) #La wea no cambia nada si quitar 
 summary(modelo2)
 ```
 
-Mixed Logit
+- Mixed logit *sin correlación*
 ```{r P2_m, echo=FALSE}
 # MIXED LOGIT without correlation
 
 model_mxlogit.v1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
-                        +RatingTV+NescenasEmocionantes*RatingTV| 1 | 0, data = myf,
+                        +RatingTV| Edad + Mujer | 0, data = myftrain,
                         rpar=c("(Intercept):2"="n", "(Intercept):3"="n", "(Intercept):4"="n",
                         NEscenasCombate="n",NescenasEmocionantes="n",CalidadAnimacion="n",
-                        RatingTV="n"), correlation=FALSE, print.level = 1)
-
-
-# MIXED LOGIT with correlation
-model_mxlogit.v2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
-                        +RatingTV+NescenasEmocionantes*RatingTV| 1 | 0, data = myf,
-                        rpar=c("(Intercept):2"="n", "(Intercept):3"="n", "(Intercept):4"="n",
-                        NEscenasCombate="n",NescenasEmocionantes="n",CalidadAnimacion="n",
-                        RatingTV="n"), correlation=FALSE, print.level = 1)
-
-```
-
-```{r}
-cat("mixed logit without correlation\n")
+                        RatingTV="n"), correlation=FALSE, print.level = 1,  R = 100)
 summary(model_mxlogit.v1)
 rpar(model_mxlogit.v1)
-
-cat("mixed logit with correlation\n")
-summary(model_mxlogit.v2)
-rpar(model_mxlogit.v2)
-
 ```
 
+- Mixed logit *con correlación*
+```{r P2_m, echo=FALSE}
+# MIXED LOGIT with correlation
+model_mxlogit.v2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
+                        +RatingTV| Edad + Mujer | 0, data = myftrain,
+                        rpar=c("(Intercept):2"="n", "(Intercept):3"="n", "(Intercept):4"="n",
+                        NEscenasCombate="n",NescenasEmocionantes="n",CalidadAnimacion="n",
+                        RatingTV="n"), correlation=FALSE, print.level = 1,  R = 100)
+summary(model_mxlogit.v2)
+rpar(model_mxlogit.v2)
+```
 
 
 
@@ -365,17 +383,25 @@ summary(probit)
 
 Probit con mlogit
 ```{r}
-modelo_probit<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV| 1 | 0, data = myf, probit = TRUE, print.level=1) 
+modelo_probit<-mlogit(Eleccion ~  NescenasEmocionantes + CalidadAnimacion+ RatingTV| 1 | 0, data = myftrain, probit = TRUE, print.level=1) 
 
 summary(modelo_probit)
 ```
+Probit con mlogit
+```{r}
+modelo_probit2<-mlogit(Eleccion ~  NescenasEmocionantes + RatingTV| 1 | 0, data = myftrain, probit = TRUE, print.level=1) 
 
+summary(modelo_probit2)
+```
 
 
 
 #### Pregunta 4
 
 (2,0 puntos) Utilizando lo aprendido de los modelos anteriores, construya dos modelos de _machine and learning_ diferentes y compárelos con los modelos logits y probits estimados anteriormente, para ello calcule la matriz de confusión de cada modelo respecto a su predicción y utilice métricas derivadas a partir de esta para la comparación de los modelos.
+
+
+
 
 ```{r P4.1}
 #ML 1
