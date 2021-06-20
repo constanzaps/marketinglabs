@@ -279,7 +279,7 @@ Arreglamos el data set en formato mlogit:
 set.seed(123456789)
 
 
-#anime <- subset(anime, select=-c(Elegido))
+anime <- subset(anime, select=-c(Elegido))
 AnimeWide <- reshape(data=as.data.frame(anime), idvar=names(anime)[1:2],
                      v.names=names(anime)[4:13],
                      timevar="Animes",
@@ -305,7 +305,6 @@ AnimeWide$Eleccion=max.col(consolidated)
 AnimeWide = AnimeWide %>% select(-contains("Eleccion."))
 
 #Dividimos la base en train y test
-
 AnimeWideTrain = AnimeWide %>% group_by(Expertos) %>% sample_frac(0.7)
 
 AnimeWideTest = anti_join(AnimeWide, AnimeWideTrain, by=c("Expertos","Capitulos"))
