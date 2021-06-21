@@ -6,7 +6,7 @@
 
 ---
 title:  'Tarea 2 Semestre Otoño 2021'
-author: 'Nombres'
+author: 'Felipe Jorquera Díaz, Constanza Peña Soto, Matías Salinas Muñoz'
 date:   '2 de junio de 2021'
 output:
   html_document:
@@ -394,7 +394,7 @@ summary(model_mxlogit.v2)
 rpar(model_mxlogit.v2)
 ```
 
-
+Mujer de 25 años que elige Naruto (por cada capítulo): V = \alpha_{Naruto} + \beta_{combate} * NescenasCombate del cap + \beta_{emocionantes} * NescenasEmocionantes + .... + \gamma_{EdadNaruto} * edad (o sea, 25) + \gamma_{MujerNaruto} * 1 (porque es mujer). Preguntar si se puede hacer por un capitulo o debe ser a nivel general.
 
 
 #### Pregunta 3
@@ -429,19 +429,57 @@ summary(modelo_probit2)
 
 #### Pregunta 4
 
-(2,0 puntos) Utilizando lo aprendido de los modelos anteriores, construya dos modelos de _machine and learning_ diferentes y compárelos con los modelos logits y probits estimados anteriormente, para ello calcule la matriz de confusión de cada modelo respecto a su predicción y utilice métricas derivadas a partir de esta para la comparación de los modelos.
+(2,0 puntos) Utilizando lo aprendido de los modelos anteriores, construya dos modelos de _machine learning_ diferentes y compárelos con los modelos logits y probits estimados anteriormente, para ello calcule la matriz de confusión de cada modelo respecto a su predicción y utilice métricas derivadas a partir de esta para la comparación de los modelos.
 
 
 
 
 ```{r P4.1}
-#ML 1
+#ML 1: SVM
+train.svm <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
+                        +RatingTV| Edad + Mujer | 0, 
+                   data=AnimeWideTrain, method="svmLinear2", 
+                   trControl  = trainControl("cv", number=5, verbose=TRUE, classProbs=TRUE,
+                                             summaryFunction=twoClassSummary),
+                   preProcess = c("center","scale"),
+                   tuneLength = 3,
+                   metric = "ROC")
+ggplot(train.svm)
+train.svm$results
 
+test.svm <- predict(train.svm, newdata=AnimeWideTest)
+CM.svm   <- confusionMatrix(test.svm, AnimeWideTest$Eleccion)
 ```
 
 ```{r P4.2}
-#ML2
+#ML2: KNN
+train.knn <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
+                        +RatingTV| Edad + Mujer | 0, 
+                   data=AnimeWideTrain, method="knn",
+                   trControl  = trainControl("cv", number=5, classProbs = TRUE, summaryFunction = twoClassSummary),
+                   preProcess = c("center","scale"),
+                   tuneLength = 3,
+                   metric = "ROC")
+ggplot(train.knn)
+train.knn$results
 
+test.knn <- predict(train.knn, newdata=AnimeWideTest)
+CM.knn   <-confusionMatrix(test.knn, AnimeWideTest$Eleccion)
+```
+
+```{r}
+#Logit
+train.logit <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
+                        +RatingTV| Edad + Mujer | 0, 
+                   data=AnimeWideTrain, method="glm", family= binomial(link="logit"),
+                   trControl  = trainControl("cv", number=5, classProbs = TRUE, summaryFunction = twoClassSummary),
+                   preProcess = c("center","scale"),
+                   metric = "ROC")
+summary(train.logit)
+train.logit$results
+
+test.logit <- predict(train.glm, newdata=AnimeWideTest)
+CM.logit   <-confusionMatrix(test.glm, Eleccion)
 ```
 
 #### Pregunta 5
