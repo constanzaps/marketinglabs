@@ -412,12 +412,10 @@ summary(modelo_probit)
 (2,0 puntos) Utilizando lo aprendido de los modelos anteriores, construya dos modelos de _machine learning_ diferentes y compárelos con los modelos logits y probits estimados anteriormente, para ello calcule la matriz de confusión de cada modelo respecto a su predicción y utilice métricas derivadas a partir de esta para la comparación de los modelos.
 
 
-
-
 ```{r P4.1}
 #ML 1: SVM
 train.svm <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion + Edad + Mujer, 
-                   data=AnimeWideTrain, method="svmLinear2", 
+                   data = AnimeTrain, method = "svmLinear2", 
                    trControl  = trainControl("cv", number=5, verbose=TRUE, classProbs=TRUE,
                                              summaryFunction=multiClassSummary),
                    preProcess = c("center","scale"),
@@ -426,24 +424,24 @@ train.svm <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAn
 ggplot(train.svm)
 train.svm$results
 
-test.svm <- predict(train.svm, newdata=AnimeWideTest)
-CM.svm   <- confusionMatrix(test.svm, AnimeWideTest$Eleccion)
+test.svm <- predict(train.svm, newdata=AnimeTest)
+CM.svm   <- confusionMatrix(test.svm, AnimeTest$Eleccion)
 ```
 
 ```{r P4.2}
-#ML2: KNN
-train.knn <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion + Edad + Mujer, 
-                   data=AnimeWideTrain, method="knn",
-                   trControl  = trainControl("cv", number=5, classProbs = TRUE, 
-                                             summaryFunction =multiClassSummary),
-                   preProcess = c("center","scale"),
-                   tuneLength = 3,
-                   metric = "ROC")
-ggplot(train.knn)
-train.knn$results
+#ML2: Random Forest
+train.randomf <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion + Edad + Mujer,
+                       data=AnimeTrain, method="parRF",
+                       trControl  = trainControl("cv", number=5, allowParallel=TRUE, verbose=TRUE, 
+                                                 classProbs=TRUE, summaryFunction=multiClassSummary),
+                       preProcess = c("center","scale"),
+                       tuneLength = 3,
+                       metric = "ROC")
+ggplot(train.randomf)
+train.randomf$results
 
-test.knn <- predict(train.knn, newdata=AnimeWideTest)
-CM.knn   <-confusionMatrix(test.knn, AnimeWideTest$Eleccion)
+test.randomf <- predict(train.randomf, newdata=AnimeWTest)
+CM.randomf   <-confusionMatrix(test.randomf, AnimeTest$Eleccion)
 ```
 
 ```{r}
