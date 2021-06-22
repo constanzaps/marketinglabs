@@ -89,6 +89,12 @@ library(plyr)
 library(reshape2)
 library(mlogit)
 library(gmnl)
+library(caret)      # ML models
+library(e1071)
+library(randomForest)
+library(ranger)
+#library(kernlab)
+library(doParallel)
 ```
 Subimos el dataset 
 
@@ -284,6 +290,9 @@ AnimeWide <- reshape(data=as.data.frame(anime), idvar=names(anime)[1:2],
                      v.names=names(anime)[4:13],
                      timevar="Animes",
                      direction="wide")
+```
+
+```{r, echo=FALSE}
 consolidated=as.matrix(cbind(AnimeWide$Eleccion.1,AnimeWide$Eleccion.2,AnimeWide$Eleccion.3,AnimeWide$Eleccion.4))
 AnimeWide$Eleccion=NA
 AnimeWide$Eleccion=max.col(consolidated)
@@ -306,11 +315,16 @@ AnimeWide$Eleccion=NA
 AnimeWide$Eleccion=max.col(consolidated)
 
 AnimeWide = AnimeWide %>% select(-contains("Eleccion."))
+```
 
+```{r}
 #Dividimos la base en train y test
 AnimeWideTrain = AnimeWide %>% group_by(Expertos) %>% sample_frac(0.7)
 
 AnimeWideTest = anti_join(AnimeWide, AnimeWideTrain, by=c("Expertos","Capitulos"))
+
+AnimeTrain <- subset(AnimeWideTrain, select=-c(Edad.2, Edad.3, Edad.4, Mujer.2, Mujer.3, Mujer.4))
+AnimeTest <- subset(AnimeWideTest, select=-c(Edad.2, Edad.3, Edad.4, Mujer.2, Mujer.3, Mujer.4))
 
 # Usamos mlogit.data() para formatear ambas bases
 ##train
@@ -322,45 +336,22 @@ myftest <- mlogit.data(AnimeWideTest, shape="wide", varying=3:38, sep="." ,choic
 
 
 
-- Mlogit con interacción
+- Mlogit con todos
 ```{r}
 colnames(anime)
-modelo1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV+NescenasEmocionantes*RatingTV| Edad + Mujer | 0, data = myftrain, print.level=1) 
+modelo1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV + DuracionCapituloMin | Edad + Mujer | 0, data = myftrain, print.level=1) 
 summary(modelo1)
 ```
 
-- Mlogit sin interacción
+- Mlogit sin todos (borrar este modelo)
 ```{r}
-modelo2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV | Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
+modelo2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + RatingTV | Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
 summary(modelo2)
 ```
 Quitar:
 - DuracionCapituloMin
+- RatingTV
 
-```{r}
-modelo3<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV + DuracionCapituloMin| Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
-summary(modelo3)
-```
-
-```{r}
-modelo5<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ DuracionCapituloMin | log(Edad) + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
-summary(modelo5)
-```
-
-```{r}
-modelo5<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ DuracionCapituloMin | log(Edad) + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
-summary(modelo5)
-```
-
-```{r}
-modelo6<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| log(Edad) + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
-summary(modelo6)
-```
-
-```{r}
-modelo7<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion + RatingTV| Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
-summary(modelo7)
-```
 
 ```{r}
 modelo8<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
@@ -373,11 +364,11 @@ summary(modelo8)
 ```{r P2_m1, echo=FALSE}
 # MIXED LOGIT without correlation
 
-model_mxlogit.v1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
-                        +RatingTV| Edad + Mujer | 0, data = myftrain,
+model_mxlogit.v1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes 
+                         + CalidadAnimacion | Edad + Mujer | 0, data = myftrain,
                         rpar=c("(Intercept):2"="n", "(Intercept):3"="n", "(Intercept):4"="n",
-                        NEscenasCombate="n",NescenasEmocionantes="n",CalidadAnimacion="n",
-                        RatingTV="n"), correlation=FALSE, print.level = 1,  R = 100)
+                        NEscenasCombate="n",NescenasEmocionantes="n", CalidadAnimacion="n"), 
+                        correlation=FALSE, print.level = 0,  R = 100)
 summary(model_mxlogit.v1)
 rpar(model_mxlogit.v1)
 ```
@@ -385,11 +376,11 @@ rpar(model_mxlogit.v1)
 - Mixed logit *con correlación*
 ```{r P2_m2, echo=FALSE}
 # MIXED LOGIT with correlation
-model_mxlogit.v2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
-                        +RatingTV| Edad + Mujer | 0, data = myftrain,
+model_mxlogit.v2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes
+                         + CalidadAnimacion | Edad + Mujer | 0, data = myftrain,
                         rpar=c("(Intercept):2"="n", "(Intercept):3"="n", "(Intercept):4"="n",
-                        NEscenasCombate="n",NescenasEmocionantes="n",CalidadAnimacion="n",
-                        RatingTV="n"), correlation=TRUE, print.level = 1,  R = 100)
+                        NEscenasCombate="n",NescenasEmocionantes="n", CalidadAnimacion="n"), 
+                        correlation=TRUE, print.level = 0,  R = 100)
 summary(model_mxlogit.v2)
 rpar(model_mxlogit.v2)
 ```
@@ -401,30 +392,19 @@ Mujer de 25 años que elige Naruto (por cada capítulo): V = \alpha_{Naruto} + \
 
 (1,0 puntos) Construya un modelo Probit que capture los elementos de elección principales y comente sobre cómo se interpretan sus coeficientes.
 
-Probit con gm 
-```{r P3}
-# #probit
-# library(lmtest)
-probit<- glm(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV,data=anime, family=binomial(link="probit"))
-# coeftest(probit, vcov. = vcovHC, type = "HC1")
-summary(probit)
-```
-
 
 Probit con mlogit
 ```{r}
-modelo_probit<-mlogit(Eleccion ~  NescenasEmocionantes + CalidadAnimacion+ RatingTV| 1 | 0, data = myftrain, probit = TRUE, print.level=1) 
+modelo_probit<-mlogit(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion | 1 | 0, data = myftrain, probit = TRUE, print.level=1) 
 
 summary(modelo_probit)
 ```
 
-Probit con mlogit
 ```{r}
-modelo_probit2<-mlogit(Eleccion ~  NescenasEmocionantes + RatingTV| 1 | 0, data = myftrain, probit = TRUE, print.level=1) 
+modelo_probit<-mlogit(Eleccion ~  NescenasEmocionantes + CalidadAnimacion | 1 | 0, data = myftrain, probit = TRUE, print.level=1) 
 
-summary(modelo_probit2)
+summary(modelo_probit)
 ```
-
 
 
 #### Pregunta 4
@@ -436,11 +416,10 @@ summary(modelo_probit2)
 
 ```{r P4.1}
 #ML 1: SVM
-train.svm <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
-                        +RatingTV| Edad + Mujer | 0, 
+train.svm <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion + Edad + Mujer, 
                    data=AnimeWideTrain, method="svmLinear2", 
                    trControl  = trainControl("cv", number=5, verbose=TRUE, classProbs=TRUE,
-                                             summaryFunction=twoClassSummary),
+                                             summaryFunction=multiClassSummary),
                    preProcess = c("center","scale"),
                    tuneLength = 3,
                    metric = "ROC")
@@ -453,10 +432,10 @@ CM.svm   <- confusionMatrix(test.svm, AnimeWideTest$Eleccion)
 
 ```{r P4.2}
 #ML2: KNN
-train.knn <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
-                        +RatingTV| Edad + Mujer | 0, 
+train.knn <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion + Edad + Mujer, 
                    data=AnimeWideTrain, method="knn",
-                   trControl  = trainControl("cv", number=5, classProbs = TRUE, summaryFunction = twoClassSummary),
+                   trControl  = trainControl("cv", number=5, classProbs = TRUE, 
+                                             summaryFunction =multiClassSummary),
                    preProcess = c("center","scale"),
                    tuneLength = 3,
                    metric = "ROC")
@@ -469,10 +448,10 @@ CM.knn   <-confusionMatrix(test.knn, AnimeWideTest$Eleccion)
 
 ```{r}
 #Logit
-train.logit <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion
-                        +RatingTV| Edad + Mujer | 0, 
+train.logit <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| Edad + Mujer | 0, 
                    data=AnimeWideTrain, method="glm", family= binomial(link="logit"),
-                   trControl  = trainControl("cv", number=5, classProbs = TRUE, summaryFunction = twoClassSummary),
+                   trControl  = trainControl("cv", number=5, classProbs = TRUE, 
+                                             summaryFunction = multiClassSummary),
                    preProcess = c("center","scale"),
                    metric = "ROC")
 summary(train.logit)
