@@ -404,13 +404,6 @@ Mujer de 25 años que elige Naruto (por cada capítulo): V = \alpha_{Naruto} + \
 
 (1,0 puntos) Construya un modelo Probit que capture los elementos de elección principales y comente sobre cómo se interpretan sus coeficientes.
 
-```{r P3_pr1}
-modelo_probit1<-mlogit(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion | 1 | 0, data = myftrain, probit = TRUE, print.level=1) 
-
-summary(modelo_probit1)
-```
-
-*R:* Interprete coeficientes
 
 ```{r P3_pr2}
 modelo_probit<-mlogit(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion | Mujer | 0, data = myftrain, probit = TRUE, print.level=1) 
