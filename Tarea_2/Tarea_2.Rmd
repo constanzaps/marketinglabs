@@ -274,10 +274,7 @@ ggcorr(cor(nums), hjust = 1, size = 4,low = "#56b1f7", mid = "white", high = "#1
 
 (2,0 puntos) Defina un modelo Logit y Mixed Logit multinomiales para estudiar las razones que llevan a un experto a elegir animes. Interprete los coeficientes y calcule la probabilidad de que una mujer de 25 años elija el anime _naruto_ para el modelo logit multinomial.
 
-```{r P2_l}
-logit<- glm(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV,data=anime, family="binomial" )
-summary(logit)
-```
+
 
 Arreglamos el data set en formato mlogit:
 
@@ -285,9 +282,7 @@ Arreglamos el data set en formato mlogit:
 set.seed(123456789)
 anime <- subset(anime, select=-c(Elegido))
 AnimeWide <- reshape(data=as.data.frame(anime), idvar=names(anime)[1:2],
-                     v.names=names(anime)[4:13],
-                     timevar="Animes",
-                     direction="wide")
+                     v.names=names(anime)[4:13],timevar="Animes",direction="wide")
 ```
 
 ```{r, echo=FALSE}
@@ -331,21 +326,30 @@ myftest <- mlogit.data(AnimeWideTest, shape="wide", varying=3:38, sep="." ,choic
 
 
 
-
-- Mlogit con todos
 ```{r}
 modelo1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV + DuracionCapituloMin | Edad + Mujer | 0, data = myftrain, print.level=1) 
 summary(modelo1)
 ```
-*R:* Interprete coeficientes
 
-- Mlogit sin todos 
+Primero se decide correr el modelo logit con todas las variables de interés. Se puede observar que los expertos tienen una predisposición para elegir el anime _Hunter x Hunter_, luego viene _Dragon Ball_, _Boku No Hero Academia_ y _Naruto_. Esto coincide con las frecuencias de elección, donde un 36% de los expertos escogió _Hunter x Hunter_, 35% escogió _Dragon Ball_, un 17% _Boku No Hero Academia_ y un 12% _Naruto_.
+
+Además se puede observar que las escenas de combate entregan disminuyen la utilidad percibida por los expertos, mientras que las escenas emocionantes la aumentan, siendo ambos coeficientes muy significativas en el modelo. 
+
+La calidad de la animación y el Rating siguen siendo significativos aunque en menor medida, teniendo mayor peso la calidad de la animación. Y por otra parte la duración de los capítulos no es significativa para el modelo de elección.
+
+Respecto a las variables demográficas, la edad solo es significativa para la elección _Naruto_, mientras que el género es significativo tanto para _Dragon Ball_, como para _Boku No Hero Academia_, y las mujeres tienden a preferir menos _Hunter x Hunter_, en comparación con los demás anime.
+
+De este modelo se decide quitar la variable Duración de capítulo, debido a la gran correlación que tiene con Rating, a que no es significativa. Además se quita la variable Rating ya que se considera que no es una medida objetiva sobre el anime, que los expertos deban considerar.
+
+Considerando eso se obtiene el siguiente modelo Logit.
+
 ```{r}
 modelo_logit<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
 summary(modelo_logit)
 ```
-*R:* Interprete coeficientes
+Al quitar estas variables se obtiene casi exactamente el mismo resultado, disminuyendo la complejidad del modelo. El único cambio destacable es que la calidad de la animación se vuelve más significativa y con un mayor valor de utilidad.
 
+En base las variables escogidas se ejecutan dos modelos de mixed logit, con y sin correlación. Para ambos casos se considerará que todas las variables incluidas distribuyen normal.
 
 - Mixed logit *sin correlación*
 ```{r P2_m1, echo=FALSE}
@@ -353,14 +357,19 @@ summary(modelo_logit)
 
 model_mxlogit.v1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes 
                          + CalidadAnimacion | Edad + Mujer | 0, data = myftrain,
-                        rpar=c("(Intercept):2"="n", "(Intercept):3"="n", "(Intercept):4"="n",
-                        NEscenasCombate="n",NescenasEmocionantes="n", CalidadAnimacion="n"), 
+                        rpar=c("(Intercept):2"="n", "(Intercept):3"="n", "(Intercept):4"="n",NEscenasCombate="n",NescenasEmocionantes="n", CalidadAnimacion="n"), 
                         correlation=FALSE, print.level = 0,  R = 100)
 summary(model_mxlogit.v1)
 rpar(model_mxlogit.v1)
 ```
 
-*R:* Interprete coeficientes
+Al utilizar Mixed Logit sin correlación, no existen cambios destacables en los valores de los coeficientes, siendo los únicos cambios el aumento de significancia de las escenas de combate y la pérdida de la significancia de la calidad de animación.
+
+
+Además, al observar la heterogeneidad de las variables, se ve que para una persona las escenas de combate y emocionantes y la calidad de la animación tienen una gran desviación estandar frente a su promedio, por lo cual el valor en la utilidad de estas opciones suele variar mucho para cada usuario. En cambio para los coefientes que indican la preferencia por anime la desviación estandar es bastante menor que el promedio, lo cual entrega mayor confianza en su estimador.
+
+
+
 
 
 - Mixed logit *con correlación*
@@ -368,15 +377,24 @@ rpar(model_mxlogit.v1)
 # MIXED LOGIT with correlation
 model_mxlogit.v2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes
                          + CalidadAnimacion | Edad + Mujer | 0, data = myftrain,
-                        rpar=c("(Intercept):2"="n", "(Intercept):3"="n", "(Intercept):4"="n",
-                        NEscenasCombate="n",NescenasEmocionantes="n", CalidadAnimacion="n"), 
+                        rpar=c("(Intercept):2"="n", "(Intercept):3"="n", "(Intercept):4"="n", NEscenasCombate="n",NescenasEmocionantes="n", CalidadAnimacion="n"), 
                         correlation=TRUE, print.level = 0,  R = 100)
 summary(model_mxlogit.v2)
 rpar(model_mxlogit.v2)
 ```
 
+Escenas emocionantes, calidad y inter 2 
 
-*R:* Interprete coeficientes
+Al ver el modelo con correlación, lo primero que se puede destacar es que el intercepto 2, y la calidad de la animación dejan de ser significativas, mientras que las escenas emocionantes pierden significancia.
+
+Otro cambio relevante es que la utilidad de _Boku No hero Academia_ pasa a ser menor que la de _Naruto_. 
+
+De este modelo se obtiene que existen muchas variables correlacionadas con otras de forma significativa, por lo cual es coherente considerar las correlaciones entre variables.
+
+Respecto a la heterogeneidad de los parámetros, la desviación estandar de estos aumentó en gran medida para las variables no demográficas, siendo esto particularmente notable en la utilidad del anime _Dragon Ball_.
+
+Además, respecto al ajuste de los datos al modelo, entre los 4 modelos que se consideraron, este es el que tiene el mejor ajuste, llegando el R^2 a un valor de 0.015, que sigue siendo bastante bajo:c.
+
 
 
 Mujer de 25 años que elige Naruto (por cada capítulo): V = \alpha_{Naruto} + \beta_{combate} * NescenasCombate del cap + \beta_{emocionantes} * NescenasEmocionantes + .... + \gamma_{EdadNaruto} * edad (o sea, 25) + \gamma_{MujerNaruto} * 1 (porque es mujer). Preguntar si se puede hacer por un capitulo o debe ser a nivel general.
@@ -386,9 +404,7 @@ Mujer de 25 años que elige Naruto (por cada capítulo): V = \alpha_{Naruto} + \
 
 (1,0 puntos) Construya un modelo Probit que capture los elementos de elección principales y comente sobre cómo se interpretan sus coeficientes.
 
-
-
-```{r}
+```{r P3_pr1}
 modelo_probit1<-mlogit(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion | 1 | 0, data = myftrain, probit = TRUE, print.level=1) 
 
 summary(modelo_probit1)
@@ -396,7 +412,7 @@ summary(modelo_probit1)
 
 *R:* Interprete coeficientes
 
-```{r}
+```{r P3_pr2}
 modelo_probit<-mlogit(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion | Mujer | 0, data = myftrain, probit = TRUE, print.level=1) 
 
 summary(modelo_probit)
@@ -459,7 +475,7 @@ MatrizConf
 
 Obtenemos matriz de confusión de modelo probit
 
-```{r}
+```{r P4_prob}
 predictProbit <- predict(modelo_probit, newdata = myftest) 
 predictProbit = as.matrix(max.col(predictProbit))  
 
@@ -481,7 +497,7 @@ MatrizConf
 
 *R:* Obtener métricas
 
-```{r P4.1}
+```{r P4.svm}
 #ML 1: SVM
 train.svm <- train(Eleccion ~ NEscenasCombate.1 + NEscenasCombate.2 + NEscenasCombate.3 + NEscenasCombate.4 + NescenasEmocionantes.1 + NescenasEmocionantes.2 + NescenasEmocionantes.3 + NescenasEmocionantes.4 + CalidadAnimacion.1 + CalidadAnimacion.2 + CalidadAnimacion.3 + CalidadAnimacion.4 + Mujer.1, data = AnimeTrain, method = "svmLinear2", 
                    trControl  = trainControl("cv", number=5, verbose=TRUE, classProbs=TRUE,
@@ -505,7 +521,7 @@ CM.svm
 
 
 
-```{r P4.2 rf}
+```{r P4.rf}
 #ML2: Random Forest
 train.randomf <- train(Eleccion ~ NEscenasCombate.1 + NEscenasCombate.2 + NEscenasCombate.3 + NEscenasCombate.4 + NescenasEmocionantes.1 + NescenasEmocionantes.2 + NescenasEmocionantes.3 + NescenasEmocionantes.4 + CalidadAnimacion.1 + CalidadAnimacion.2 + CalidadAnimacion.3 + CalidadAnimacion.4 + Mujer.1,
                        data=AnimeTrain, method="parRF",
