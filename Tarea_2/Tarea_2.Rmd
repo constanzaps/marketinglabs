@@ -383,7 +383,7 @@ summary(model_mxlogit.v2)
 rpar(model_mxlogit.v2)
 ```
 
-Escenas emocionantes, calidad y inter 2 
+
 
 Al ver el modelo con correlación, lo primero que se puede destacar es que el intercepto 2, y la calidad de la animación dejan de ser significativas, mientras que las escenas emocionantes pierden significancia.
 
@@ -393,7 +393,7 @@ De este modelo se obtiene que existen muchas variables correlacionadas con otras
 
 Respecto a la heterogeneidad de los parámetros, la desviación estandar de estos aumentó en gran medida para las variables no demográficas, siendo esto particularmente notable en la utilidad del anime _Dragon Ball_.
 
-Además, respecto al ajuste de los datos al modelo, entre los 4 modelos que se consideraron, este es el que tiene el mejor ajuste, llegando el R^2 a un valor de 0.015, que sigue siendo bastante bajo:c.
+Además, respecto al ajuste de los datos al modelo, entre los 4 modelos que se consideraron, este es el que tiene el mejor ajuste, llegando el R^2 a un valor de 0.015.
 
 
 
