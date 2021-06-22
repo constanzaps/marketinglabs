@@ -95,6 +95,7 @@ library(randomForest)
 library(ranger)
 #library(kernlab)
 library(doParallel)
+library(import)
 ```
 Subimos el dataset 
 
@@ -102,17 +103,16 @@ Subimos el dataset
 path <-'C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_2/'
 anime <- read.csv("anime2.csv")
 anime <- anime[-c(1)]
-View(anime)
+
 #Cambiamos los tipos de ciertas variables
 anime$Expertos <-as.factor(anime$Expertos)
 anime$Capitulos <-as.factor(anime$Capitulos)
 
 anime$Mujer <-as.factor(anime$Mujer)
 anime$Elegido<-  anime$Animes*anime$Eleccion
-anime$Eleccion <-as.factor(anime$Eleccion)
+#anime$Eleccion <-as.factor(anime$Eleccion)
 anime$Animes <-as.factor(anime$Animes)
 
-summary(anime)
 ```
 
 
@@ -262,10 +262,10 @@ ggarrange(ncombate.cap,nemcoionantes.cap, nrow=2, ncol=1)
 ```
 En los gráficos anteriores se puede observar que en lineas generales las escenas de combate y las emocionantes tienen correlación negativa. 
 
-Esto lo confirmamos en la siguiente matriz de correlación, donde además se puede observar que existe una correlación negativa entre el rating que tiene en televisión y la calidad de la animación que se puede explicar debido a que la gente prefiera más los anime más viejito.
+Esto lo confirmamos en la siguiente matriz de correlación, donde además se puede observar que existe una correlación negativa entre el rating que tiene en televisión y la duración de los capítulos, y la calidad de la animación y el número de escenas emocionantes.
 ```{r, fig.width=6, fig.height=3, dpi=200, echo=FALSE}
 nums <- subset(anime2[ ,unlist(lapply(anime2, is.numeric))],
-               select=-c(CantCaps, Elegido)) #Animes,
+               select=-c(CantCaps, Elegido, Scoremyanimelist)) #Animes,
 ggcorr(cor(nums), hjust = 1, size = 4,low = "#56b1f7", mid = "white", high = "#132b43",layout.exp = 3,label = TRUE, label_size = 4, label_round = 2)
 ```
 
@@ -283,8 +283,6 @@ Arreglamos el data set en formato mlogit:
 
 ```{r, echo=FALSE}
 set.seed(123456789)
-
-
 anime <- subset(anime, select=-c(Elegido))
 AnimeWide <- reshape(data=as.data.frame(anime), idvar=names(anime)[1:2],
                      v.names=names(anime)[4:13],
@@ -320,44 +318,33 @@ AnimeWide = AnimeWide %>% select(-contains("Eleccion."))
 ```{r}
 #Dividimos la base en train y test
 AnimeWideTrain = AnimeWide %>% group_by(Expertos) %>% sample_frac(0.7)
-
 AnimeWideTest = anti_join(AnimeWide, AnimeWideTrain, by=c("Expertos","Capitulos"))
 
 AnimeTrain <- subset(AnimeWideTrain, select=-c(Edad.2, Edad.3, Edad.4, Mujer.2, Mujer.3, Mujer.4))
 AnimeTest <- subset(AnimeWideTest, select=-c(Edad.2, Edad.3, Edad.4, Mujer.2, Mujer.3, Mujer.4))
-
 # Usamos mlogit.data() para formatear ambas bases
 ##train
 myftrain <- mlogit.data(AnimeWideTrain, shape="wide", varying=3:38, sep="." ,choice="Eleccion", id = names(AnimeWide)[1:2])
-
 ## test
 myftest <- mlogit.data(AnimeWideTest, shape="wide", varying=3:38, sep="." ,choice="Eleccion", id = names(AnimeWide)[1:2])
 ```
 
 
 
+
 - Mlogit con todos
 ```{r}
-colnames(anime)
 modelo1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV + DuracionCapituloMin | Edad + Mujer | 0, data = myftrain, print.level=1) 
 summary(modelo1)
 ```
+*R:* Interprete coeficientes
 
-- Mlogit sin todos (borrar este modelo)
+- Mlogit sin todos 
 ```{r}
-modelo2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + RatingTV | Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
-summary(modelo2)
+modelo_logit<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
+summary(modelo_logit)
 ```
-Quitar:
-- DuracionCapituloMin
-- RatingTV
-
-
-```{r}
-modelo8<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
-summary(modelo8)
-```
-
+*R:* Interprete coeficientes
 
 
 - Mixed logit *sin correlación*
@@ -373,6 +360,9 @@ summary(model_mxlogit.v1)
 rpar(model_mxlogit.v1)
 ```
 
+*R:* Interprete coeficientes
+
+
 - Mixed logit *con correlación*
 ```{r P2_m2, echo=FALSE}
 # MIXED LOGIT with correlation
@@ -385,6 +375,10 @@ summary(model_mxlogit.v2)
 rpar(model_mxlogit.v2)
 ```
 
+
+*R:* Interprete coeficientes
+
+
 Mujer de 25 años que elige Naruto (por cada capítulo): V = \alpha_{Naruto} + \beta_{combate} * NescenasCombate del cap + \beta_{emocionantes} * NescenasEmocionantes + .... + \gamma_{EdadNaruto} * edad (o sea, 25) + \gamma_{MujerNaruto} * 1 (porque es mujer). Preguntar si se puede hacer por un capitulo o debe ser a nivel general.
 
 
@@ -393,18 +387,24 @@ Mujer de 25 años que elige Naruto (por cada capítulo): V = \alpha_{Naruto} + \
 (1,0 puntos) Construya un modelo Probit que capture los elementos de elección principales y comente sobre cómo se interpretan sus coeficientes.
 
 
-Probit con mlogit
+
 ```{r}
-modelo_probit<-mlogit(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion | 1 | 0, data = myftrain, probit = TRUE, print.level=1) 
+modelo_probit1<-mlogit(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion | 1 | 0, data = myftrain, probit = TRUE, print.level=1) 
+
+summary(modelo_probit1)
+```
+
+*R:* Interprete coeficientes
+
+```{r}
+modelo_probit<-mlogit(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion | Mujer | 0, data = myftrain, probit = TRUE, print.level=1) 
 
 summary(modelo_probit)
 ```
 
-```{r}
-modelo_probit<-mlogit(Eleccion ~  NescenasEmocionantes + CalidadAnimacion | 1 | 0, data = myftrain, probit = TRUE, print.level=1) 
 
-summary(modelo_probit)
-```
+*R:* Interprete coeficientes
+
 
 
 #### Pregunta 4
@@ -412,10 +412,78 @@ summary(modelo_probit)
 (2,0 puntos) Utilizando lo aprendido de los modelos anteriores, construya dos modelos de _machine learning_ diferentes y compárelos con los modelos logits y probits estimados anteriormente, para ello calcule la matriz de confusión de cada modelo respecto a su predicción y utilice métricas derivadas a partir de esta para la comparación de los modelos.
 
 
+```{r, echo=FALSE}
+AnimeTest$Eleccion[AnimeTest$Eleccion==1]="HxH"
+AnimeTest$Eleccion[AnimeTest$Eleccion==2]="DB"
+AnimeTest$Eleccion[AnimeTest$Eleccion==3]="N"
+AnimeTest$Eleccion[AnimeTest$Eleccion==4]="BNHA"
+
+
+AnimeTrain$Eleccion[AnimeTrain$Eleccion==1]="HxH"
+AnimeTrain$Eleccion[AnimeTrain$Eleccion==2]="DB"
+AnimeTrain$Eleccion[AnimeTrain$Eleccion==3]="N"
+AnimeTrain$Eleccion[AnimeTrain$Eleccion==4]="BNHA"
+
+test1 <- as.factor(AnimeTest$Eleccion)
+```
+
+Primero obtendremos las métricas para los modelos logit y probit
+
+Obtenemos matriz de confusión de modelo logit
+```{r}
+predictLogit <- predict(modelo_logit, newdata = myftest) #proporciona una matriz de probabilidades de elección de cada alternativa (4 columnas)
+predictLogit = as.matrix(max.col(predictLogit))  #vector que contiene la alternativa con mayor probabilidad (la más probable a escoger) para cada experto en cada instancia capitulo
+
+table(predictLogit)
+predictLogit[predictLogit==1]="HxH"
+predictLogit[predictLogit==2]="DB"
+predictLogit[predictLogit==3]="N"
+predictLogit[predictLogit==4]="BNHA"
+
+# Para comparar la predicción vs lo real, necesitamos lo que realmente escogieron en cada instancia de capitulo los expertos en la base test
+
+#Ejemplo cálculo del hit rate
+r<-ifelse(test1==predictLogit,1,0) #un indicador binario: 1 si el modelo le achuntó, 0 en caso contrario
+hitrate <-sum(r)/4000 # cantidad de veces que se achuntó dividido por el total de filas base test (30%*48000 del total de la base)
+hitrate
+#Calculo manual de la Matriz de Confusión
+true_choice = as.factor(test1) #verdadera elección como factor
+predictLogit =as.factor(predictLogit) #predicciones como factor
+predictLogit <- factor(predictLogit , levels = c("HxH","DB","N","BNHA"))
+MatrizConf=table(true_choice , predictLogit )
+MatrizConf
+```
+
+*R:* Obtener métricas
+
+
+Obtenemos matriz de confusión de modelo probit
+
+```{r}
+predictProbit <- predict(modelo_probit, newdata = myftest) 
+predictProbit = as.matrix(max.col(predictProbit))  
+
+predictProbit[predictProbit==1]="HxH"
+predictProbit[predictProbit==2]="DB"
+predictProbit[predictLogit==3]="N"
+predictProbit[predictProbit==4]="BNHA"
+
+r<-ifelse(test1==predictProbit,1,0) 
+hitrate <-sum(r)/4000 
+hitrate
+#Calculo manual de la Matriz de Confusión
+true_choice = as.factor(test1) #verdadera elección como factor
+predictProbit =as.factor(predictProbit) #predicciones como factor
+predictProbit <- factor(predictProbit , levels = c("HxH","DB","N","BNHA"))
+MatrizConf=table(true_choice , predictProbit )
+MatrizConf
+```
+
+*R:* Obtener métricas
+
 ```{r P4.1}
 #ML 1: SVM
-train.svm <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion + Edad + Mujer, 
-                   data = AnimeTrain, method = "svmLinear2", 
+train.svm <- train(Eleccion ~ NEscenasCombate.1 + NEscenasCombate.2 + NEscenasCombate.3 + NEscenasCombate.4 + NescenasEmocionantes.1 + NescenasEmocionantes.2 + NescenasEmocionantes.3 + NescenasEmocionantes.4 + CalidadAnimacion.1 + CalidadAnimacion.2 + CalidadAnimacion.3 + CalidadAnimacion.4 + Mujer.1, data = AnimeTrain, method = "svmLinear2", 
                    trControl  = trainControl("cv", number=5, verbose=TRUE, classProbs=TRUE,
                                              summaryFunction=multiClassSummary),
                    preProcess = c("center","scale"),
@@ -425,12 +493,21 @@ ggplot(train.svm)
 train.svm$results
 
 test.svm <- predict(train.svm, newdata=AnimeTest)
-CM.svm   <- confusionMatrix(test.svm, AnimeTest$Eleccion)
+test.svm1 <- as.factor(test.svm)
+CM.svm   <- confusionMatrix(test.svm1, test1)
+
+CM.svm
 ```
 
-```{r P4.2}
+
+
+
+
+
+
+```{r P4.2 rf}
 #ML2: Random Forest
-train.randomf <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion + Edad + Mujer,
+train.randomf <- train(Eleccion ~ NEscenasCombate.1 + NEscenasCombate.2 + NEscenasCombate.3 + NEscenasCombate.4 + NescenasEmocionantes.1 + NescenasEmocionantes.2 + NescenasEmocionantes.3 + NescenasEmocionantes.4 + CalidadAnimacion.1 + CalidadAnimacion.2 + CalidadAnimacion.3 + CalidadAnimacion.4 + Mujer.1,
                        data=AnimeTrain, method="parRF",
                        trControl  = trainControl("cv", number=5, allowParallel=TRUE, verbose=TRUE, 
                                                  classProbs=TRUE, summaryFunction=multiClassSummary),
@@ -440,24 +517,14 @@ train.randomf <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + Calid
 ggplot(train.randomf)
 train.randomf$results
 
-test.randomf <- predict(train.randomf, newdata=AnimeWTest)
-CM.randomf   <-confusionMatrix(test.randomf, AnimeTest$Eleccion)
+test.randomf <- predict(train.randomf, newdata=AnimeTest)
+test.randomf1 <- as.factor(test.randomf)
+CM.randomf   <-confusionMatrix(test.randomf1, test1)
+CM.randomf
 ```
 
-```{r}
-#Logit
-train.logit <- train(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| Edad + Mujer | 0, 
-                   data=AnimeWideTrain, method="glm", family= binomial(link="logit"),
-                   trControl  = trainControl("cv", number=5, classProbs = TRUE, 
-                                             summaryFunction = multiClassSummary),
-                   preProcess = c("center","scale"),
-                   metric = "ROC")
-summary(train.logit)
-train.logit$results
+*R:* Comparar resultados
 
-test.logit <- predict(train.glm, newdata=AnimeWideTest)
-CM.logit   <-confusionMatrix(test.glm, Eleccion)
-```
 
 #### Pregunta 5
 
