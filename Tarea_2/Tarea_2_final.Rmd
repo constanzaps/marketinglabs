@@ -1,0 +1,705 @@
+<div style="text-align: right"> **Universidad de Chile**</div>
+<div style="text-align: right"> **Ingeniería Industrial**</div>
+<div style="text-align: right"> **IN5602**: Marketing II</div>
+<div style="text-align: right">**Prof**: Marcel Goic</div>
+<div style="text-align: right">**Auxs**: R. Cerda, JP. Coddou, G.Mora, F. Moraga, A .Muñoz</div>
+```{r}
+
+```
+
+---
+title:  'Tarea 2 Semestre Otoño 2021'
+author: 'Felipe Jorquera Díaz, Constanza Peña Soto, Matías Salinas Muñoz'
+date:   '2 de junio de 2021'
+output:
+  html_document:
+    df_print: paged
+    theme: simplex
+    highlight: tango
+    toc: no
+encoding: UTF-8
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# {.tabset}
+## Enunciado: OtakuFest
+
+Un canal televisivo ha observado desde las sombras cómo el Animé ha aumentado su popularidad de manera exponencial durante el último tiempo, por lo que se dispone a realizar su próxima apuesta por la animación japonesa y busca elegir qué serie comenzar a emitir. Para ello esta auspiciando el famoso festival "OtakuFest" lugar al que asisten tanto fans de la cultura japonesa, como los denominados *Expertos*, personas capaces de pasar más de 24 horas seguidas frente a una pantalla a disfrutar de una serie acompañados de su infaltable dosis de maruchan. Los Expertos han estado observando 4 tipos distintos de anime durante el último tiempo: 1.Hunter x Hunter, 2.Dragon Ball, 3.Naruto y 4.My Hero Academia. En el final del evento, los expertos votaron para escoger al animé de su preferencia dentro de las elecciones para decidir el ganador , el cual será finalmente transmitido en el canal televisivo. 
+
+Los resultados de la votación están incluidos en la base de datos "Anime.csv", la cual posee una estructura de panel, en la cual cada fila representa un capítulo de la serie correspondiente, con sus respectivas características. La variable "Elección" toma el valor 1 si es que el Experto votó por dicho capítulo y 0 si no. El experto debe realizar su votación comparando el n-ésimo capítulo de cada serie y elegir de entre los cuatro cuál es el que más le gustó. Por ejemplo, luego de ver el primer capítulo de cada uno de los 4 anime, el experto elige un sólo ganador de los 4. Para no sobre-cargar cognitivamente a los Expertos, la evaluación selimitó a la evaluación de los primeros 12 capitulos de cada serie.
+
+El equipo de programación piensa que esta información puede ser muy relevante para guiar las decisiones de programación. En estas decisión es importante considerar no solo cuál es la serie que tiene mayor rating sino que también el público al que les resulta más atractivo y si hubieran dinámicas en la evaluación en el tiempo. Quizás hay algunas series que, aunque en el global pueden ser bien evaluadas, podrían una partida lenta con baja preferencia en los primeros capítulos. Aunque hay un amplio historial de series existosas que han partido con bajo rating, es útil indentificar estas dinámicas para que, en caso de emitirse, el lanzamiento sea apoyado con estrategias promocionales que consoliden la propuesta de valor.  
+
+#### **Preguntas**
+
+1. (0 puntos) Explore los datos para poder entender qué variables podrían ser más influyentes en el hecho de que un experto elija un anime. 
+
+2. (2,0 puntos) Defina un modelo Logit y Mixed Logit multinomiales para estudiar las razones que llevan a un experto a elegir animes. Interprete los coeficientes y calcule la probabilidad de que una mujer de 25 años elija el anime _naruto_ para el modelo logit multinomial.
+
+3. (1,0 puntos) Construya un modelo Probit que capture los elementos de elección principales y comente sobre cómo se interpretan sus coeficientes.
+
+4. (2,0 puntos) Utilizando lo aprendido de los modelos anteriores, construya dos modelos de _machine and learning_ diferentes y compárelos con los modelos logits y probits estimados anteriormente, para ello calcule la matriz de confusión de cada modelo respecto a su predicción y utilice métricas derivadas a partir de esta para la comparación de los modelos.
+
+5. (1,0 puntos) Resuma sus aprendizajes principales en un máximo de 4 tablas o figuras. Redacte de manera concisa sus resultados tal como los reportaría al departamento comercial interesado en informarse de la preferencia de los expertos. Agregue cualquier conclusión o idea que le parezca relevante de comunicar para que los representantes del canal de televisión tomen la mejor estrategia de programación televisiva.
+
+#### **Reglas del juego** 
+
+- Las tareas buscan replicar parcialmente las labores a las que se enfrentarían en el análisis de datos en una organización para el apoyo en la toma de decisiones. Por esto, se han propuesto preguntas relativamente abiertas que requieren que ustedes discutan y decidan cual es el mejor enfoque de solución. Les pedimos que se involucren tempranamente en el desarrollo de la tarea para tener una discusión enriquecedora. 
+
+- Todas las dudas, comentarios y errores publicarlos exclusivamente en el foro de u-cursos. De esta forma todos se benefician de las respuestas ofrecidas. 
+
+- Consideramos que es muy importante que logren escribir un informe conciso con una redacción acorde de un informe técnico profesional, los análisis y las conclusiones que obtengan de cada pregunta es en específico lo que debe declararse. La presentación y comunicación de resultados es parte integral de la tarea y por tanto será evaluada cuidadosamente. 
+
+- La tarea se desarrolla en grupos de máximo 3 integrantes. No hay excepciones. El entregable principal es un único markdown separado en tres tabs (a través de la opción .tabset). En el primer tab incluya todo el desarrollo de la tarea adecuadamente comentado. El segundo tab incluya el resumen de sus resultado de acuerdo a lo pedido en la pregunta 6. Este segundo tab es el que usarán en caso de que les corresponda presentar sus resultados. Considere el tercer tab como de anexos y puede incluir aquí cualquier resultado complementario. Para entregar sus resultados suba vía u-cursos un único archivo comprimido llamado t2-A1-A2-A3.zip, donde A1, A2 y A3 es el primer apellido de los integrantes del grupo. Incluya tanto el archivo .html de salida del markdown como los códigos fuentes que permitan reproducir sus resultados. 
+
+- Para la pregunta 6 consideramos que 4 figuras son suficientes para resumir los aprendizajes más relevantes, pero si están convencidos de que agregar una figura adicional es absolutamente necesaria, ¡adelante! 
+
+- La fecha de entrega de la tarea es el día miércoles 23 de Junio a las 09:00 hrs, sin excepciones y no habrá plazo extra para la entrega. Si por algún motivo de fuerza mayor se ve imposibilitado de entregar la tarea en el plazo estipulado, deberá escribir directamente al profesor explicando su situación. El profesor decidirá el curso de acción de acuerdo a los méritos del caso. 
+
+- Recuerde que tenemos contempladas dos sesiones de presentaciones de las tareas. La primera sesión, a realizarse el día jueves 17 de Junio, está destinada a que compartan sus avances y podamos identificar de manera conjunta cuáles podrían ser dificultades técnicas que requieran orientación adicional. La segunda sesión, a realizarse el día jueves 6 de Mayo, está destinada para que expongan los resultados más relevantes de su trabajo y resuman sus principales aprendizajes, para que tanto los compañeros como el equipo docente puedan proveer retroalimentación. Todos los grupos deben estar disponibles para presentar en ambas ocasiones, pero si hay grupos voluntarios se les dará preferencia. Las presentaciones tendrán una duración máxima de 10 minutos y no es necesario que preparen material adicional. Esperamos que la salida del markdown sea lo suficientemente explicativa para comunicar sus resultados. 
+
+- El equipo docente considera que la copia de tareas atenta en contra de tu aprendizaje y por tanto aplicará todas las medidas que estén a su disposición para desincentivar esta mala práctica. 
+
+## Preliminares
+
+Escribe acá todos los comandos que necesitas ejecutar antes de abordar las preguntas de la tarea (carga de librerías, lectura de datos, limpieza de la data, transformación de variables y todo lo que necesites)
+
+
+
+
+
+#### Preparación Tarea
+
+Subimos el dataset 
+
+```{r, message = FALSE, warning=FALSE}
+rm(list=ls())#Limpiar espacio de trabajo
+graphics.off()#Borrar graficos de sesiones anteriores
+library(tidyr)
+library(dplyr)
+library(gridExtra)
+library(grid)
+library(GGally) ## ggcorr
+library(corrplot)
+library(ggpubr)
+library(ggrepel)
+library(knitr) 
+library(glmnet)
+library(inspectdf)
+library(plyr)
+library(reshape2)
+library(mlogit)
+library(gmnl)
+library(caret)      # ML models
+library(e1071)
+library(randomForest)
+library(ranger)
+#library(kernlab)
+library(doParallel)
+library(import)
+library(stringr)
+```
+
+```{r}
+path <-'C:/Users/Asus/Documents/GitHub/marketinglabs/Tarea_2/'
+anime <- read.csv("anime2.csv")
+anime <- anime[-c(1)]
+
+#Cambiamos los tipos de ciertas variables
+anime$Expertos <-as.factor(anime$Expertos)
+anime$Capitulos <-as.factor(anime$Capitulos)
+
+anime$Mujer <-as.factor(anime$Mujer)
+anime$Elegido<-  anime$Animes*anime$Eleccion
+#anime$Eleccion <-as.factor(anime$Eleccion)
+anime$Animes <-as.factor(anime$Animes)
+```
+
+
+## Desarrollo
+
+Documenta acá el desarrollo de tu tarea por pregunta.
+
+#### Pregunta 1
+
+(0 puntos) Explore los datos para poder entender qué variables podrían ser más influyentes en el hecho de que un experto elija un anime. 
+
+
+Primero analizaremos las correlaciones de las variables numéricas:
+
+```{r, fig.width=6, fig.height=3, dpi=200, echo=FALSE}
+nums <- subset(anime[ ,unlist(lapply(anime, is.numeric))], select=-c(Elegido))
+ggcorr(cor(nums), hjust = 1, size = 3,
+       layout.exp = 3, label = TRUE,label_size = 2, label_round = 2)
+```
+Algunas correlaciones importantes son las siguientes:
+* Los animes con mayor cantidad de capitulos tienen una mayor número de escenas de combate, pero también tiene un menor rating.
+* El _score_ de anime list aumenta con la cantidad de escenas de combate, además, tiene un mayor rating de televisión.
+* La duración de los capítulos tiene una alta correlación negativa con el Rating en TV.
+
+
+Luego, podemos filtrar el dataset, obteniendo solamente un dataset con las elecciones que hizo el participante para determinado capítulo, esto nos entrega un dataset donde 1000 participantes entregan sus preferencias para cada capítulo (en total 12).
+
+```{r}
+anime1 <- anime[anime$Eleccion == 1, ]
+anime1 <- subset(anime1, select=-c(Animes))
+```
+
+Se procede a realizar histogramas para analizar variabilidad en los datos:
+
+```{r, fig.width=9, fig.height=4, dpi=500, echo=FALSE}
+
+Elegidos.hist <- ggplot(anime1, aes(x=Elegido, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Elegido', y = 'Count', title = 'Elecciones: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+
+cate_expertos <- unique(subset(anime1,select=c(Expertos, Mujer, Edad)))
+ Mujer.hist <- ggplot(cate_expertos, aes(x=Mujer, fill=..count..))+
+  geom_bar()+
+  labs(x = 'Mujer', y = 'Count', title = 'Mujer: Histograma')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+ 
+  Edad.hist <- ggplot(cate_expertos, aes(x=Edad, fill=..count..))+
+  geom_histogram(bins= 5)+
+  labs(x = 'Edad (min)', y = 'Count', title = 'Edad: Histograma ')+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
+  
+ggarrange(Elegidos.hist,ggarrange(Mujer.hist,Edad.hist, nrow=2, ncol=1) ,ncol = 2)
+```
+
+Se puede observar algunas diferencias al controlar por Edad y Mujer, como se ve en el siguiente gráfico. Si bien no quedan claro ningún patrón patrón etario al elegir un anime, existen diferencias por los géneros que prefieren alguno.
+
+```{r, fig.width=8, fig.height=4, echo=FALSE}
+ggplot(anime1, aes(x=Edad, fill=factor(Elegido))) + geom_histogram(bins = 10)+
+  facet_wrap(Mujer~Elegido,nrow=2)+ scale_fill_manual(values = c("#56b1f7", "#4793cf", "#3e81b6", "#28547a", "#132b43"))
+```
+
+Luego se pueden observar las métricas generales por anime, donde se observa que el anime más elegido, no es el que tiene mayor rating TV, lo cual tiene sentido pues no es una métrica en que los expertos se debiesen fijar.
+
+```{r, fig.width=9, fig.height=3, dpi=200, echo=FALSE}
+calidad_anime <- ggplot(anime, aes(x=Animes, y=CalidadAnimacion, fill=Animes))+
+  geom_boxplot()+
+  theme(legend.position="none",
+        plot.title = element_text(hjust = 0.5))+
+  ggtitle('Calidad de animación por anime')
+
+rating_anime <- ggplot(anime, aes(x=Animes, y=RatingTV, fill=Animes))+
+  geom_boxplot()+
+  theme(legend.position="none",
+        plot.title = element_text(hjust = 0.5))+
+  ggtitle('Rating TV por anime')
+
+ggarrange(calidad_anime,rating_anime, nrow=1, ncol=2)
+```
+
+Además se puede observar que existen diferencias en la cantidad de escenas de combate por anime, mientras que para la cantidad de escenas emocionantes no queda claro como se comportan por anime, por lo cual se deagregará por capítulo.
+
+```{r, fig.width=9, fig.height=3, dpi=200, echo=FALSE}
+comba.anim <- ggplot(anime, aes(x=Animes, y=NEscenasCombate, fill=Animes))+
+  geom_boxplot()+
+  theme(legend.position="none", plot.title = element_text(hjust = 0.5))+
+  ggtitle('Cantidad de escenas de combate por anime')
+
+emocio.anim <- ggplot(anime, aes(x=Animes, y=NescenasEmocionantes, fill=Animes))+
+  geom_boxplot()+
+  theme(legend.position="none", plot.title = element_text(hjust = 0.5))+
+  ggtitle('Cantidad de escenas emocionantes por anime')
+
+ggarrange(comba.anim,emocio.anim, nrow=1, ncol=2)
+```
+
+Luego, con estos datos se puede observar la cantidad de veces que cada anime fue elegido por capítulo. Se puede observar claramente que los patrones generales se mantienen para todos los capítulos, donde los expertos suelen elegir _Hunter x Hunter_ y _Dragon Ball_ mucho más que a _Naruto_ y a _Boku No hero Academia_.
+
+```{r, fig.width=8, fig.height=4, dpi=200, echo=FALSE}
+#table(anime1$Capitulos,anime1$Elegido)
+ggplot(anime1, aes(x=Elegido,fill = factor(Elegido)))+ geom_histogram(bins = 10)+
+  facet_wrap(. ~ Capitulos)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x='Anime', y='Cantidad de personas que lo escogieron', title='Cantidad de veces que cada anime fue elegido por capítulo')
+```
+
+Finalmente para obtener las características de cada capítulo por anime, podemos quitar las variables que caracterizan a los expertos y su elección y quitar duplicados. Con esto obtenemos un data frame que caracteriza a los 4 anime en sus 12 capítulos (ie, 48 filas).
+
+```{r, echo=FALSE}
+anime2 <- unique(subset(anime,select=-c(Expertos,Edad,Mujer,Eleccion)))
+```
+
+Podemos ver que los anime se diferencian bastante al verlos por capítulo, en general no se puede establecer una relación entre el avance de la temporada y cambios en la calidad, el rating en la televisión o la duración.
+
+Si bien se puede observar un poco la correlación negativa entre _Rating TV_ y duración de capítulo, no se puede ver ninguna relación clara entre estas variables y la calidad de la animación, que debiese ser una varible mucho más importante para los expertos.
+
+
+```{r, fig.width=9, fig.height=6, dpi=200, echo=FALSE}
+calidad.cap <- ggplot(anime2, aes(x =factor(Capitulos) ,y=CalidadAnimacion, color=factor(Animes), group=factor(Animes))) + geom_line(size=1) + ggtitle('Calidad de animación por capítulo')+ scale_fill_manual(values = c("#56b1f7", "#4793cf", 
+    "#3e81b6", "#28547a", "#132b43"))
+
+rating.cap<- ggplot(anime2, aes(x =factor(Capitulos) ,y=RatingTV,color=factor(Animes), group=factor(Animes))) + geom_line(size=1)+ ggtitle('Rating TV por capítulo')
+
+duracion.cap <- ggplot(anime2, aes(x =factor(Capitulos) ,y=DuracionCapituloMin,color=factor(Animes), group=factor(Animes))) + geom_line(size=1)+ ggtitle('Duración en minutos de cada anime por capítulo')
+
+ggarrange(calidad.cap,rating.cap, duracion.cap,nrow=3, ncol=1)
+```
+
+
+
+```{r, fig.width=9, fig.height=4, dpi=200, echo=FALSE}
+nemcoionantes.cap <-ggplot(anime2, aes(x =factor(Capitulos) ,y=NescenasEmocionantes,color=factor(Animes), group=factor(Animes))) + geom_line(size=1)+ ggtitle('Escenas emocionantes por capítulo')
+ncombate.cap <-ggplot(anime2, aes(x =factor(Capitulos) ,y=NEscenasCombate,color=factor(Animes), group=factor(Animes))) + geom_line(size=1)+ ggtitle('Escenas de combate por capítulo')
+ggarrange(ncombate.cap,nemcoionantes.cap, nrow=2, ncol=1)
+```
+
+
+#### Pregunta 2
+
+(2,0 puntos) Defina un modelo Logit y Mixed Logit multinomiales para estudiar las razones que llevan a un experto a elegir animes. Interprete los coeficientes y calcule la probabilidad de que una mujer de 25 años elija el anime _naruto_ para el modelo logit multinomial.
+
+
+*R.: *Arreglando el data set en formato mlogit (transformándolo a _wide_) y fijando la semilla:
+
+```{r}
+set.seed(123456789)
+anime <- subset(anime, select=-c(Elegido))
+AnimeWide <- reshape(data=as.data.frame(anime), idvar=names(anime)[1:2],
+                     v.names=names(anime)[4:13],timevar="Animes",direction="wide")
+```
+
+```{r, echo=FALSE}
+consolidated=as.matrix(cbind(AnimeWide$Eleccion.1,AnimeWide$Eleccion.2,AnimeWide$Eleccion.3,AnimeWide$Eleccion.4))
+AnimeWide$Eleccion=NA
+AnimeWide$Eleccion=max.col(consolidated)
+
+AnimeWide = AnimeWide %>% select(-contains("Eleccion."))
+
+rownames(AnimeWide) <- NULL
+
+myf <- mlogit.data(AnimeWide, shape = "wide", varying=3:38, sep=".", choice="Eleccion",
+                   id=names(AnimeWide)[1:2])
+dim(AnimeWide)
+#Pasar a wide la base
+AnimeWide <- reshape(data=as.data.frame(anime),idvar=names(anime)[1:2],
+                  v.names = names(anime)[4:13],
+                  timevar = "Animes",
+                  direction="wide")
+
+consolidated=as.matrix(cbind(AnimeWide$Eleccion.1,AnimeWide$Eleccion.2,AnimeWide$Eleccion.3,AnimeWide$Eleccion.4))
+AnimeWide$Eleccion=NA
+AnimeWide$Eleccion=max.col(consolidated)
+
+AnimeWide = AnimeWide %>% select(-contains("Eleccion."))
+```
+También se divide la base en _train_ y _test_ de forma aleatoria en la proporción 70:30 para poder predecir más adelante.
+
+```{r}
+#Dividimos la base en train y test
+AnimeWideTrain = AnimeWide %>% group_by(Expertos) %>% sample_frac(0.7)
+AnimeWideTest = anti_join(AnimeWide, AnimeWideTrain, by=c("Expertos","Capitulos"))
+
+AnimeTrain <- subset(AnimeWideTrain, select=-c(Edad.2, Edad.3, Edad.4, Mujer.2, Mujer.3, Mujer.4))
+AnimeTest <- subset(AnimeWideTest, select=-c(Edad.2, Edad.3, Edad.4, Mujer.2, Mujer.3, Mujer.4))
+# Usamos mlogit.data() para formatear ambas bases
+##train
+myftrain <- mlogit.data(AnimeWideTrain, shape="wide", varying=3:38, sep="." ,choice="Eleccion", id = names(AnimeWide)[1:2])
+## test
+myftest <- mlogit.data(AnimeWideTest, shape="wide", varying=3:38, sep="." ,choice="Eleccion", id = names(AnimeWide)[1:2])
+```
+
+Cabe destacar que se utilizará la base de datos para entrenamiento en los modelos Logit y Probit, ya que con la proporción escogida no se pierde generalidad en el estudio de las elecciones. El primer modelo implementado es el *Logit Multinomial* con todas las variables relevantes en la elección de un anime (por capítulo). Cabe recordar que las variables _Edad_ y _Mujer_ son demográficas.
+
+```{r Logit}
+modelo1Logit<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV + DuracionCapituloMin | Edad + Mujer | 0, data = myftrain) 
+summary(modelo1Logit)
+```
+
+Primero se decide correr el modelo logit con todas las variables de interés. Se puede observar que los expertos tienen una predisposición para elegir el anime _Hunter x Hunter_, luego viene _Dragon Ball_, _Boku No Hero Academia_ y _Naruto_. Esto coincide con las frecuencias de elección, donde un 36% de los expertos escogió _Hunter x Hunter_, 35% escogió _Dragon Ball_, un 17% _Boku No Hero Academia_ y un 12% _Naruto_.
+
+Además se puede observar que las escenas de combate entregan disminuyen la utilidad percibida por los expertos, mientras que las escenas emocionantes la aumentan, siendo ambos coeficientes muy significativas en el modelo. 
+
+La calidad de la animación y el Rating siguen siendo significativos aunque en menor medida, teniendo mayor peso la calidad de la animación. Y por otra parte la duración de los capítulos no es significativa para el modelo de elección.
+
+Respecto a las variables demográficas, la edad solo es significativa para la elección _Naruto_, mientras que el género es significativo tanto para _Dragon Ball_, como para _Boku No Hero Academia_, y las mujeres tienden a preferir menos _Hunter x Hunter_, en comparación con los demás anime.
+
+De este modelo se decide quitar la variable _Duración de capítulo_, debido a la gran correlación que tiene con _Rating_, y a que no es significativa. Además se quita la variable _Rating_ ya que se considera que no es una medida objetiva sobre el anime que los expertos deban considerar.
+
+Considerando eso se obtiene el siguiente modelo Logit Multinomial.
+
+```{r Logit mejor}
+modelo2_logit<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| Edad + Mujer | 0, data = myftrain) 
+summary(modelo2_logit)
+```
+
+Al quitar estas variables se obtiene casi exactamente el mismo resultado, disminuyendo la complejidad del modelo. El único cambio destacable es que la calidad de la animación se vuelve más significativa y con un mayor valor de utilidad.
+
+En base las variables escogidas se ejecutan dos modelos de *Mixed Logit*, con y sin correlación. Para ambos casos se considerará que todos los coeficientes de las variables incluidas distribuyen Normal.
+
+- Mixed logit *sin correlación*
+```{r Mixed Logit, echo=FALSE}
+# MIXED LOGIT without correlation
+
+model_mxlogit.v1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes 
+                         + CalidadAnimacion | Edad + Mujer | 0, data = myftrain,
+                        rpar=c("(Intercept):2"="n", "(Intercept):3"="n", "(Intercept):4"="n",NEscenasCombate="n",NescenasEmocionantes="n", CalidadAnimacion="n"), 
+                        correlation=FALSE, print.level = 0,  R = 100)
+summary(model_mxlogit.v1)
+rpar(model_mxlogit.v1)
+```
+
+Al utilizar Mixed Logit sin correlación, no existen cambios destacables en los valores de los coeficientes, siendo los únicos cambios la disminución y pérdida de significancia de las escenas de combate y la calidad de animación, respectivamente.
+
+Además, al observar la heterogeneidad de las variables, se ve que para una persona las escenas de combate y emocionantes y la calidad de la animación tienen una gran desviación estandar frente a su promedio, por lo cual el valor en la utilidad de estas opciones suele variar mucho según el espectador. En cambio para los coefientes que indican la preferencia por anime la desviación estandar es bastante menor que el promedio, lo cual entrega mayor confianza en su estimador.
+
+- Mixed logit *con correlación*
+```{r Mixed Logit corr, echo=FALSE}
+# MIXED LOGIT with correlation
+model_mxlogit.v2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes
+                         + CalidadAnimacion | Edad + Mujer | 0, data = myftrain,
+                        rpar=c("(Intercept):2"="n", "(Intercept):3"="n", "(Intercept):4"="n", NEscenasCombate="n",NescenasEmocionantes="n", CalidadAnimacion="n"), 
+                        correlation=TRUE, print.level = 0,  R = 100)
+summary(model_mxlogit.v2)
+rpar(model_mxlogit.v2)
+```
+
+Al ver el modelo con correlación, lo primero que se puede destacar es que el intercepto 2, y la calidad de la animación dejan de ser significativas, mientras que las escenas emocionantes pierden significancia. Respecto al valor de los coeficientes, estos cambian muy levemente su magnitud de los valores que se tenían antes, sin embargo todos siguen en lineas generales los mismos valores, siendo un único cambio que las escenas de combate tienen ahora una utilidad positiva, mientras que las emocionantes tienen una utilidad negativa. 
+
+Otro cambio relevante es que la utilidad de _Boku No hero Academia_ pasa a ser menor que la de _Naruto_. 
+
+De este modelo se obtiene que existen muchas variables correlacionadas con otras de forma significativa, por lo cual es coherente considerar las correlaciones entre variables.
+
+Respecto a la heterogeneidad de los parámetros, la desviación estandar de estos aumentó en gran medida para las variables no demográficas, siendo esto particularmente notable en la utilidad del anime _Dragon Ball_.
+
+Además, respecto al ajuste de los datos al modelo, entre los 4 modelos que se consideraron, este es el que tiene el mejor ajuste, llegando el R^2 a un valor de 0.015.
+
+Para finalizar, se calculará la probabilidad de que una mujer de 25 años escoja el anime _Naruto_. Para esto, se calcularán las utilidades que cada capítulo de cada anime le generan según los coeficientes calculados mediante Logit Multinomial.
+
+```{r Probabilidad}
+
+tablaprob = AnimeWide[-c(1,3,4,12,13,21,22,30,31,39)]
+tablaprob = tablaprob[1:12,] #se obtiene tabla que contiene datos para cada capítulo
+
+coeficientes <- coef(modelo2_logit) #se obtienen coeficientes del modelo logit
+
+#se crean vectores de largo 12 para guardar utilidades y probabilidades
+UtilidadNaruto = c(1:12)
+UtilidadHunter = c(1:12)
+UtilidadDragon = c(1:12)
+UtilidadHero = c(1:12)
+prob = c(1:12)
+
+#se calculan utilidades por capitulo para cada anime, para mujer de 25 años.
+#se calcula probabilidad de que mujer de 25 años escoja Naruto, por capítulo
+for (i in c(1:12)) {
+  UtilidadNaruto[i] <- coeficientes[2] + coeficientes[4]*tablaprob$NEscenasCombate.3[i] + 
+    coeficientes[5]*tablaprob$NescenasEmocionantes.3[i] + coeficientes[6]*tablaprob$CalidadAnimacion.3[i] + 
+      coeficientes[8]*25 + coeficientes[11]*1
+
+  UtilidadHunter[i] <- coeficientes[4]*tablaprob$NEscenasCombate.1[i] + 
+    coeficientes[5]*tablaprob$NescenasEmocionantes.1[i] + coeficientes[6]*tablaprob$CalidadAnimacion.1[i]
+
+  UtilidadDragon[i] <- coeficientes[1] + coeficientes[4]*tablaprob$NEscenasCombate.2[i] + 
+    coeficientes[5]*tablaprob$NescenasEmocionantes.2[i] + coeficientes[6]*tablaprob$CalidadAnimacion.2[i] + 
+      coeficientes[7]*25 + coeficientes[10]*1
+
+  UtilidadHero[i] <- coeficientes[3] + coeficientes[4]*tablaprob$NEscenasCombate.4[i] + 
+   coeficientes[5]*tablaprob$NescenasEmocionantes.4[i] + coeficientes[6]*tablaprob$CalidadAnimacion.4[i] + 
+      coeficientes[9]*25 + coeficientes[12]*1
+
+  prob[i] <- exp(UtilidadNaruto[i])/(exp(UtilidadNaruto[i]) + exp(UtilidadHunter[i]) + exp(UtilidadDragon[i]) + exp(UtilidadHero[i]))
+}
+
+mult = 1 #variable auxiliar
+
+#se obtiene probabilidad de que mujer de 25 años elija Naruto siempre
+for (i in c(1:12)) {
+  mult = mult*prob[i]
+}
+
+print(str_c("La probabilidad de que una mujer experta de 25 años elija el anime Naruto en un capítulo es, en promedio, de ", toString(sum(prob)/12), ".")) #se obtiene promedio simple de probabilidades por capítulo
+
+print(str_c("La probabilidad de que esta mujer elija el anime Naruto en todos los capítulos es de ", toString(mult), ".")) #se muestra probabilidad de que mujer de 25 años elija Naruto siempre
+
+```
+Como se puede observar, la probabilidad de que una mujer de 25 años escoja _Naruto_ en alguno de los capítulos es bastante baja, del orden de 10% en promedio. Es más, es improbable que esta mujer escoja en todos los capítulos el anime _Naruto_, pues la probabilidad asociada es prácticamente nula (aunque estadísticamente no es imposible).
+
+Como recomendación, se sugiere que si el grupo objetivo del canal televisivo son las mujeres de 25 años, no emitan la serie de anime _Naruto_.
+
+```{r Probabilidad 2, echo=FALSE}
+
+tablaprob = AnimeWide[-c(1,3,4,12,13,21,22,30,31,39)]
+tablaprob = tablaprob[1:12,] #se obtiene tabla que contiene datos para cada capítulo
+
+coeficientes <- coef(modelo2_logit) #se obtienen coeficientes del modelo logit
+
+#se crean vectores de largo 12 para guardar utilidades y probabilidades
+UtilidadNaruto = c(1:12)
+UtilidadHunter = c(1:12)
+UtilidadDragon = c(1:12)
+UtilidadHero = c(1:12)
+prob = c(1:12)
+
+#se calculan utilidades por capitulo para cada anime, para mujer de 25 años.
+#se calcula probabilidad de que mujer de 25 años escoja Naruto, por capítulo
+for (i in c(1:12)) {
+  UtilidadNaruto[i] <- coeficientes[2] + coeficientes[4]*tablaprob$NEscenasCombate.3[i] + 
+    coeficientes[5]*tablaprob$NescenasEmocionantes.3[i] + coeficientes[6]*tablaprob$CalidadAnimacion.3[i] + 
+      coeficientes[8]*40 + coeficientes[11]*0
+
+  UtilidadHunter[i] <- coeficientes[4]*tablaprob$NEscenasCombate.1[i] + 
+    coeficientes[5]*tablaprob$NescenasEmocionantes.1[i] + coeficientes[6]*tablaprob$CalidadAnimacion.1[i]
+
+  UtilidadDragon[i] <- coeficientes[1] + coeficientes[4]*tablaprob$NEscenasCombate.2[i] + 
+    coeficientes[5]*tablaprob$NescenasEmocionantes.2[i] + coeficientes[6]*tablaprob$CalidadAnimacion.2[i] + 
+      coeficientes[7]*40 + coeficientes[10]*0
+
+  UtilidadHero[i] <- coeficientes[3] + coeficientes[4]*tablaprob$NEscenasCombate.4[i] + 
+   coeficientes[5]*tablaprob$NescenasEmocionantes.4[i] + coeficientes[6]*tablaprob$CalidadAnimacion.4[i] + 
+      coeficientes[9]*40 + coeficientes[12]*0
+
+  prob[i] <- exp(UtilidadDragon[i])/(exp(UtilidadNaruto[i]) + exp(UtilidadHunter[i]) + exp(UtilidadDragon[i]) + exp(UtilidadHero[i]))
+}
+
+mult = 1 #variable auxiliar
+
+#se obtiene probabilidad de que mujer de 25 años elija Naruto siempre
+for (i in c(1:12)) {
+  mult = mult*prob[i]
+}
+
+print(str_c("La probabilidad de que un hombre experto de 40 años elija el anime Dragon Ball en un capítulo es, en promedio, de ", toString(sum(prob)/12), ".")) #se obtiene promedio simple de probabilidades por capítulo
+
+print(str_c("La probabilidad de que este hombre elija el anime Dragon Ball en todos los capítulos es de ", toString(mult), ".")) #se muestra probabilidad de que hombre de 40 años elija Dragon Ball siempre
+
+```
+Repitiendo el mismo análisis para un hombre de 40 años eligiendo _Dragon Ball_, se puede apreciar que la probabilidad promedio de elección en un capítulo aumenta al triple (a 31% versus un 10% de Naruto en una mujer de 25 años). Incluso, la probabilidad de que este hombre elija Dragon Ball en todos los capítulos es del orden de $10^5$ veces mayor en comparación con el caso anterior.
+
+
+```{r Probabilidad 3, echo=FALSE}
+
+tablaprob = AnimeWide[-c(1,3,4,12,13,21,22,30,31,39)]
+tablaprob = tablaprob[1:12,] #se obtiene tabla que contiene datos para cada capítulo
+
+coeficientes <- coef(modelo2_logit) #se obtienen coeficientes del modelo logit
+
+#se crean vectores de largo 12 para guardar utilidades y probabilidades
+UtilidadNaruto = c(1:12)
+UtilidadHunter = c(1:12)
+UtilidadDragon = c(1:12)
+UtilidadHero = c(1:12)
+prob = c(1:12)
+
+#se calculan utilidades por capitulo para cada anime, para mujer de 25 años.
+#se calcula probabilidad de que mujer de 25 años escoja Naruto, por capítulo
+for (i in c(1:12)) {
+  UtilidadNaruto[i] <- coeficientes[2] + coeficientes[4]*tablaprob$NEscenasCombate.3[i] + 
+    coeficientes[5]*tablaprob$NescenasEmocionantes.3[i] + coeficientes[6]*tablaprob$CalidadAnimacion.3[i] + 
+      coeficientes[8]*25 + coeficientes[11]*0
+
+  UtilidadHunter[i] <- coeficientes[4]*tablaprob$NEscenasCombate.1[i] + 
+    coeficientes[5]*tablaprob$NescenasEmocionantes.1[i] + coeficientes[6]*tablaprob$CalidadAnimacion.1[i]
+
+  UtilidadDragon[i] <- coeficientes[1] + coeficientes[4]*tablaprob$NEscenasCombate.2[i] + 
+    coeficientes[5]*tablaprob$NescenasEmocionantes.2[i] + coeficientes[6]*tablaprob$CalidadAnimacion.2[i] + 
+      coeficientes[7]*25 + coeficientes[10]*0
+
+  UtilidadHero[i] <- coeficientes[3] + coeficientes[4]*tablaprob$NEscenasCombate.4[i] + 
+   coeficientes[5]*tablaprob$NescenasEmocionantes.4[i] + coeficientes[6]*tablaprob$CalidadAnimacion.4[i] + 
+      coeficientes[9]*25 + coeficientes[12]*0
+
+  prob[i] <- exp(UtilidadDragon[i])/(exp(UtilidadNaruto[i]) + exp(UtilidadHunter[i]) + exp(UtilidadDragon[i]) + exp(UtilidadHero[i]))
+}
+
+mult = 1 #variable auxiliar
+
+#se obtiene probabilidad de que mujer de 25 años elija Naruto siempre
+for (i in c(1:12)) {
+  mult = mult*prob[i]
+}
+
+print(str_c("La probabilidad de que un hombre experto de 25 años elija el anime Dragon Ball en un capítulo es, en promedio, de ", toString(sum(prob)/12), ".")) #se obtiene promedio simple de probabilidades por capítulo
+
+print(str_c("La probabilidad de que este hombre elija el anime Dragon Ball en todos los capítulos es de ", toString(mult), ".")) #se muestra probabilidad de que hombre de 40 años elija Dragon Ball siempre
+
+```
+Realizando el mismo análisis para un hombre de 25 años escogiendo Dragon Ball, se puede apreciar que los cambios en probabilidades son bastante pequeños. Esto está relacionado a la significancia del coeficiente relacionado a la edad, el cual no era significativo para _Dragon Ball_.
+
+
+#### Pregunta 3
+
+(1,0 puntos) Construya un modelo Probit que capture los elementos de elección principales y comente sobre cómo se interpretan sus coeficientes.
+
+Finalmente, y considerando todos los modelos obtenidos en la pregunta anterior y el EDA, se decide que las variables más importantes del modelo serían el numero de escenas de combate, el número de escenas emocionantes, la calidad de la animación y si es o no mujer.
+
+```{r P3_pr2, message=FALSE}
+modelo_probit<-mlogit(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion | Mujer | 0, data = myftrain, probit = TRUE, print.level=1) 
+
+summary(modelo_probit)
+```
+
+Viendo los resultados del modelo probit, se puede observar que en general cambian los coeficientes para todas las variables, donde la única que queda aproximadamente en el mismo orden de magnitud es _Mujer_.
+
+Respecto a los interceptos por anime, tenemos que estos aumentaron en gran medida particularmente para _Naruto_ y _Boku No Hero Academia_, y los tres coeficientes para los interceptos son ahora positivos y de un valor muy cercano entre sí. Con ello, este modelo Probit dice que los expertos tienen una menor predisposición para elegir el anime _Hunter x Hunter_, mientras que los demás animes le reportan una mayor utilidad que este.
+
+Estos cambios van acompañados de un aumento de la significancia para la variable Mujer, de la cual se obtiene además que las mujeres suelen preferir menos _Hunter x Hunter_.
+
+Además se puede ver que la calidad de la animación, y el número de escenas emocionantes y de combate pierden significancia respecto a los anteriores modelos Logit.
+
+Del modelo Probit se puede extraer además la matriz de varianza covarianza, que permite ver los efectos cruzados y la sustitución. En este caso las sustituciones significativas indican que _Dragon Ball_ se puede sustituir por _Naruto_ y por _Boku No Hero Academia_, mientras que todas las demás sustituciones tienen un mucho menor valor y no son significativas.
+
+Finalmente se puede mencionar que el $R^2$ de este modelo es de 0.008, lo cual es un puntaje menor respecto al obtenido con el modelo Mixed Logit con correlación. Es decir, este modelo se ajusta menos a los datos.
+
+
+#### Pregunta 4
+
+(2,0 puntos) Utilizando lo aprendido de los modelos anteriores, construya dos modelos de _machine learning_ diferentes y compárelos con los modelos logits y probits estimados anteriormente, para ello calcule la matriz de confusión de cada modelo respecto a su predicción y utilice métricas derivadas a partir de esta para la comparación de los modelos.
+
+
+```{r, echo=FALSE}
+AnimeTest$Eleccion[AnimeTest$Eleccion==1]="HxH"
+AnimeTest$Eleccion[AnimeTest$Eleccion==2]="DB"
+AnimeTest$Eleccion[AnimeTest$Eleccion==3]="N"
+AnimeTest$Eleccion[AnimeTest$Eleccion==4]="BNHA"
+
+
+AnimeTrain$Eleccion[AnimeTrain$Eleccion==1]="HxH"
+AnimeTrain$Eleccion[AnimeTrain$Eleccion==2]="DB"
+AnimeTrain$Eleccion[AnimeTrain$Eleccion==3]="N"
+AnimeTrain$Eleccion[AnimeTrain$Eleccion==4]="BNHA"
+
+test1 <- as.factor(AnimeTest$Eleccion)
+```
+
+Primero obtendremos las métricas para los modelos Logit y Probit.
+
+
+- Se obtiene la predicción para el modelo *Mixed Logit* con correlación, pues este es el que entregó mejores resultados en la pregunta 2.
+
+```{r}
+predictLogit <- predict(model_mxlogit.v2, newdata = myftest) #proporciona una matriz de probabilidades de elección de cada alternativa (4 columnas)
+predictLogit = as.matrix(max.col(predictLogit))  #vector que contiene la alternativa con mayor probabilidad (la más probable a escoger) para cada experto en cada instancia capitulo
+
+
+predictLogit[predictLogit==1]="HxH"
+predictLogit[predictLogit==2]="DB"
+predictLogit[predictLogit==3]="N"
+predictLogit[predictLogit==4]="BNHA"
+
+# Para comparar la predicción vs lo real, necesitamos lo que realmente escogieron en cada instancia de capitulo los expertos en la base test
+
+#Ejemplo cálculo del hit rate
+r<-ifelse(test1==predictLogit,1,0) #un indicador binario: 1 si el modelo le achuntó, 0 en caso contrario
+hitrate <-sum(r)/4000 # cantidad de veces que se achuntó dividido por el total de filas base test (30%*48000 del total de la base)
+hitrate
+#Calculo manual de la Matriz de Confusión
+true_choice = as.factor(test1) #verdadera elección como factor
+predictLogit =as.factor(predictLogit) #predicciones como factor
+predictLogit <- factor(predictLogit , levels = c("HxH","DB","N","BNHA"))
+MatrizConf=table(true_choice , predictLogit )
+MatrizConf
+```
+
+- Se obtiene la predicción para el modelo *Probit*.
+
+```{r P4_prob}
+predictProbit <- predict(modelo_probit, newdata = myftest) 
+predictProbit = as.matrix(max.col(predictProbit))  
+
+predictProbit[predictProbit==1]="HxH"
+predictProbit[predictProbit==2]="DB"
+predictProbit[predictLogit==3]="N"
+predictProbit[predictProbit==4]="BNHA"
+
+r<-ifelse(test1==predictProbit,1,0) 
+hitrate <-sum(r)/4000 
+hitrate
+#Calculo manual de la Matriz de Confusión
+true_choice = as.factor(test1) #verdadera elección como factor
+predictProbit =as.factor(predictProbit) #predicciones como factor
+predictProbit <- factor(predictProbit , levels = c("HxH","DB","N","BNHA"))
+MatrizConf=table(true_choice , predictProbit )
+MatrizConf
+```
+
+- Ahora se construye el modelo de *Support Vector Machine*:
+
+```{r P4.svm, message=FALSE, warning=FALSE}
+#ML 1: SVM
+train.svm <- train(Eleccion ~ NEscenasCombate.1 + NEscenasCombate.2 + NEscenasCombate.3 + NEscenasCombate.4 + NescenasEmocionantes.1 + NescenasEmocionantes.2 + NescenasEmocionantes.3 + NescenasEmocionantes.4 + CalidadAnimacion.1 + CalidadAnimacion.2 + CalidadAnimacion.3 + CalidadAnimacion.4 + Mujer.1, data = AnimeTrain, method = "svmLinear2", 
+                   trControl  = trainControl("cv", number=5, verbose=TRUE, classProbs=TRUE,
+                                             summaryFunction=multiClassSummary),
+                   preProcess = c("center","scale"),
+                   tuneLength = 3,
+                   metric = "ROC")
+
+test.svm <- predict(train.svm, newdata=AnimeTest)
+test.svm1 <- as.factor(test.svm)
+CM.svm   <- confusionMatrix(test.svm1, test1)
+
+CM.svm
+```
+
+- Se realiza el mismo procedimiento para el modelo *Random Forest*:
+
+```{r P4.rf}
+#ML2: Random Forest
+train.randomf <- train(Eleccion ~ NEscenasCombate.1 + NEscenasCombate.2 + NEscenasCombate.3 + NEscenasCombate.4 + NescenasEmocionantes.1 + NescenasEmocionantes.2 + NescenasEmocionantes.3 + NescenasEmocionantes.4 + CalidadAnimacion.1 + CalidadAnimacion.2 + CalidadAnimacion.3 + CalidadAnimacion.4 + Mujer.1,
+                       data=AnimeTrain, method="parRF",
+                       trControl  = trainControl("cv", number=5, allowParallel=TRUE, verbose=TRUE, 
+                                                 classProbs=TRUE, summaryFunction=multiClassSummary),
+                       preProcess = c("center","scale"),
+                       tuneLength = 3,
+                       metric = "ROC")
+test.randomf <- predict(train.randomf, newdata=AnimeTest)
+test.randomf1 <- as.factor(test.randomf)
+CM.randomf   <-confusionMatrix(test.randomf1, test1)
+CM.randomf
+```
+
+Para los modelos alternativos de Machine Learning se utilizaron dos algoritmos de clasificación: Support Vector Machines (SVM) y Random Forest.
+
+Para SVM el accuracy es 0.3985, pero analizando las otras métricas de desempeño se nota una cierta confusión entre clases. De todas las elecciones de Boku No Hero Academia solo el 23.3% fue acertada, lo cual denota una poca sensibilidad al reconocer esta elección. Para Dragon Ball y Hunter x Hunter la sensibilidad es cercana al 52%, es decir, solo en la mitad de los casos se predice de forma correcta. Para Naruto el modelo nunca predice este anime.
+
+Con respecto a la prevalencia de una clase sobre las demás, vemos que los porcentajes de frecuencia son muy similares a la frecuencia original de los animes escogidos, siendo Dragon Ball y Hunter x Hunter los más escogidos.
+
+Para Random Forest el análisis es extremadamente similar a SVM, presentando casi las mismas métricas de desempeño pero con una leve baja en la sensibilidad de los modelos (capacidad de predecir correctamente la clase).
+
+Con respecto a los modelos Logit (Mixed con correlación) y Probit, notamos que para ambos métodos la matriz de confusión en la mayoría de los casos nunca predice los anime Naruto o Boku No Hero Academia, si no que siempre asigna Dragon Ball o Hunter x Hunter. Esto se puede producir debido a que los últimos animes mencionados son predominantes en relación a sus frecuencia y además las características de los animes son muy similares entre si, denotando una falta de patrones o relaciones que permitan clasificar de manera correcta.
+
+Además, la matriz de confusión muestra que entre Dragon Ball y Hunter x Hunter también hay una alta confusión entre las elecciones, en donde ambos son clasificados casi con la misma probabilidad.
+
+
+#### Pregunta 5
+
+(1,0 puntos) Resuma sus aprendizajes principales en un máximo de 4 tablas o figuras. Redacte de manera concisa sus resultados tal como los reportaría al departamento comercial interesado en informarse de la preferencia de los expertos. Agregue cualquier conclusión o idea que le parezca relevante de comunicar para que los representantes del canal de televisión tomen la mejor estrategia de programación televisiva.
+
+
+*R.: *De los datos recolectados se puede observar las siguientes elecciones por expertos. Si bien estos eligen diversas alternativas tienen una clara preferencia por elegir _Hunter x Hunter_ y _Dragon Ball_, quedando luego como preferencia _Boku No Hero Academia_ y finalmente _Naruto_.
+
+```{r, fig.width=8, fig.height=4, dpi=200, echo=FALSE}
+#table(anime1$Capitulos,anime1$Elegido)
+ggplot(anime1, aes(x=Elegido,fill = factor(Elegido)))+ geom_histogram(bins = 10)+
+  facet_wrap(. ~ Capitulos)+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x='Anime', y='Cantidad de personas que lo escogieron', title='Cantidad de veces que cada anime fue elegido por capítulo')
+```
+
+
+Para predecir la elección de los expertos se tienen distintas variables, en particular las características demográficas de los expertos, como el género y la edad, y además variables propias de los capítulos, como su duración, el número de escenas emocionates y de combate, la calidad de la animación, y el rating en TV. 
+
+De estas variables se consideraron particularmente relevantes el género, el número de escenas emocionantes y de combate y la calidad de la animación. Esto es pues muestran distintos comportamiento por capítulo, y además se considera que el rating TV y la duración de capítulos no deben ser medidas reelevantes para un experto. 
+
+Luego de esto se realizaron distintos modelos probalisticos, para entender la utilidad que entregan las distintas elecciones de anime. Con ello se puede obtener, por ejemplo, que la probabilidad de una mujer de 25 años elija _Naruto_ en cualquier capítulo es del 10% en promedio. El análisis repetido para hombres que elijan _Dragon Ball_ entrega que la probabilidad de elección es en promedio un 31%.
+
+Con respecto a los modelos, los métodos que mejores resultados obtuvieron fueron Mixed Logit Logit y SVM, pero ambos no pueden predecir tan bien entre los distintos animes. Por ejemplo, los modelos nunca predicen que Naruto será el elegido, y también consideran que Dragon Ball y HunterXHunter poseen muchas similitudes por lo que no son capaces de distinguir de forma clara entre ambas clases.
+
+A métodos generales, según el análisis realizado en los datos y los resultados de los distintos modelos empleados se concluye que no es posible explicar y/o predecir de forma clara la elección de los expertos sobre un capitulo de anime determinado. Aunque la mayoría de las personas escoge Dragon Ball y HxH, esta elección pareciera ser algo arbitraria y no es posible explicarla con los datos presentes.
+
+
+
+## Anexos
+
+Documenta acá cualquier otro adicional que consideres útil tener de referencia. 
+
