@@ -671,6 +671,7 @@ Con respecto a los modelos Logit (Mixed con correlación) y Probit, notamos que 
 Además, la matriz de confusión muestra que entre Dragon Ball y Hunter x Hunter también hay una alta confusión entre las elecciones, en donde ambos son clasificados casi con la misma probabilidad.
 
 
+## Resumen
 #### Pregunta 5
 
 (1,0 puntos) Resuma sus aprendizajes principales en un máximo de 4 tablas o figuras. Redacte de manera concisa sus resultados tal como los reportaría al departamento comercial interesado en informarse de la preferencia de los expertos. Agregue cualquier conclusión o idea que le parezca relevante de comunicar para que los representantes del canal de televisión tomen la mejor estrategia de programación televisiva.
