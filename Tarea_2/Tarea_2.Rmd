@@ -347,6 +347,11 @@ Considerando eso se obtiene el siguiente modelo Logit.
 modelo_logit<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
 summary(modelo_logit)
 ```
+
+
+
+
+
 Al quitar estas variables se obtiene casi exactamente el mismo resultado, disminuyendo la complejidad del modelo. El único cambio destacable es que la calidad de la animación se vuelve más significativa y con un mayor valor de utilidad.
 
 En base las variables escogidas se ejecutan dos modelos de mixed logit, con y sin correlación. Para ambos casos se considerará que todas las variables incluidas distribuyen normal.
@@ -385,7 +390,11 @@ rpar(model_mxlogit.v2)
 
 
 
-Al ver el modelo con correlación, lo primero que se puede destacar es que el intercepto 2, y la calidad de la animación dejan de ser significativas, mientras que las escenas emocionantes pierden significancia.
+
+
+
+
+Al ver el modelo con correlación, lo primero que se puede destacar es que el intercepto 2, y la calidad de la animación dejan de ser significativas, mientras que las escenas emocionantes pierden significancia. Respecto al valor de los coeficientes, estos cambian muy levemente su magnitud de los valores que se tenían antes, sin embargo todos siguen en lineas generales los mismos valores, siendo un único cambio que las escenas de combate tienen ahora una utilidad positiva, mientras que las emocionantes tienen una utilidad negativa. 
 
 Otro cambio relevante es que la utilidad de _Boku No hero Academia_ pasa a ser menor que la de _Naruto_. 
 
@@ -404,6 +413,7 @@ Mujer de 25 años que elige Naruto (por cada capítulo): V = \alpha_{Naruto} + \
 
 (1,0 puntos) Construya un modelo Probit que capture los elementos de elección principales y comente sobre cómo se interpretan sus coeficientes.
 
+Finalmente, y considerando todos los modelos obtenidos en la pregunta anterior y el EDA, se decide que las variables más importantes del modelo serían el numero de escenas de combate, el número de escenas emocionantes, la calidad de la animación y si es o no mujer.
 
 ```{r P3_pr2}
 modelo_probit<-mlogit(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion | Mujer | 0, data = myftrain, probit = TRUE, print.level=1) 
@@ -411,8 +421,17 @@ modelo_probit<-mlogit(Eleccion ~  NEscenasCombate + NescenasEmocionantes + Calid
 summary(modelo_probit)
 ```
 
+Viendo los resultados del modelo probit, se puede observar que en general cambian los coeficientes para todas las variables, donde la única que queda aproximadamente en el mismo orden de magnitud es Mujer.
 
-*R:* Interprete coeficientes
+Respecto a los interceptos por anime, tenemos que estos aumentaron en gran medida particularmente para _Naruto_ y _Boku No Hero Academia_, y los tres coeficientes para los interceptos son ahora positivos y de un valor muy cercano entre sí. Con ello, este modelo probit dice que los expertos tienen una menor predisposición para elegir el anime _Hunter x Hunter_ , mientras que los demás anime le reportan una mayor utilidad que este.
+
+Estos cambios van acompañados de un aumento de la significancia para la variable Mujer, de la cual se obtiene además que las mujeres suelen preferir menos _Hunter x Hunter_.
+
+Además se puede ver que la calidad de la animación, y el número de escenas emocionantes y de combate pierde significancia respecto a los anteriores modelos Logit.
+
+Del modelo probit se puede extraer además la matriz de varianza covarianza, que permite ver los efectos cruzados y la sustitución. En este caso las sustituciones significativas indican que _Dragon Ball_ se puede sustituir por _Naruto_ y por _Boku No Hero Academia_, mientras que todas las demás sustituciones tienen un mucho menor valor y no son significativas.
+
+Finalmente se puede mencionar que el R^2 de este modelo es de 0.008, lo cual es un puntaje menor respecto al obtenido con el modelo Mixed Logit con correlación. Es decir, este modelo se ajusta menos a los datos.
 
 
 
