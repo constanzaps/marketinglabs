@@ -67,9 +67,6 @@ El equipo de programación piensa que esta información puede ser muy relevante 
 Escribe acá todos los comandos que necesitas ejecutar antes de abordar las preguntas de la tarea (carga de librerías, lectura de datos, limpieza de la data, transformación de variables y todo lo que necesites)
 
 
-
-
-
 #### Preparación Tarea
 ```{r, message = FALSE, warning=FALSE, echo=FALSE}
 rm(list=ls())#Limpiar espacio de trabajo
@@ -96,6 +93,7 @@ library(ranger)
 #library(kernlab)
 library(doParallel)
 library(import)
+library(stringr)
 ```
 Subimos el dataset 
 
@@ -326,9 +324,9 @@ myftest <- mlogit.data(AnimeWideTest, shape="wide", varying=3:38, sep="." ,choic
 
 
 
-```{r}
-modelo1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV + DuracionCapituloMin | Edad + Mujer | 0, data = myftrain, print.level=1) 
-summary(modelo1)
+```{r Logit}
+modelo1Logit<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion+ RatingTV + DuracionCapituloMin | Edad + Mujer | 0, data = myftrain, print.level=1) 
+summary(modelo1Logit)
 ```
 
 Primero se decide correr el modelo logit con todas las variables de interés. Se puede observar que los expertos tienen una predisposición para elegir el anime _Hunter x Hunter_, luego viene _Dragon Ball_, _Boku No Hero Academia_ y _Naruto_. Esto coincide con las frecuencias de elección, donde un 36% de los expertos escogió _Hunter x Hunter_, 35% escogió _Dragon Ball_, un 17% _Boku No Hero Academia_ y un 12% _Naruto_.
@@ -343,9 +341,9 @@ De este modelo se decide quitar la variable Duración de capítulo, debido a la 
 
 Considerando eso se obtiene el siguiente modelo Logit.
 
-```{r}
-modelo_logit<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| Edad + Mujer | 0, data = myftrain) #La wea no cambia nada si quitar 
-summary(modelo_logit)
+```{r Logit mejor}
+modelo2_logit<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes + CalidadAnimacion| Edad + Mujer | 0, data = myftrain) 
+summary(modelo2_logit)
 ```
 
 
@@ -357,7 +355,7 @@ Al quitar estas variables se obtiene casi exactamente el mismo resultado, dismin
 En base las variables escogidas se ejecutan dos modelos de mixed logit, con y sin correlación. Para ambos casos se considerará que todas las variables incluidas distribuyen normal.
 
 - Mixed logit *sin correlación*
-```{r P2_m1, echo=FALSE}
+```{r Mixed Logit, echo=FALSE}
 # MIXED LOGIT without correlation
 
 model_mxlogit.v1<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes 
@@ -378,7 +376,7 @@ Además, al observar la heterogeneidad de las variables, se ve que para una pers
 
 
 - Mixed logit *con correlación*
-```{r P2_m2, echo=FALSE}
+```{r Mixed Logit corr, echo=FALSE}
 # MIXED LOGIT with correlation
 model_mxlogit.v2<-mlogit(Eleccion ~ NEscenasCombate + NescenasEmocionantes
                          + CalidadAnimacion | Edad + Mujer | 0, data = myftrain,
@@ -404,9 +402,59 @@ Respecto a la heterogeneidad de los parámetros, la desviación estandar de esto
 
 Además, respecto al ajuste de los datos al modelo, entre los 4 modelos que se consideraron, este es el que tiene el mejor ajuste, llegando el R^2 a un valor de 0.015.
 
+Para finalizar, se calculará la probabilidad de que una mujer de 25 años escoja el anime _Naruto_. Para esto, se calcularán las utilidades que cada capítulo de cada anime le generan según los coeficientes calculados mediante Logit Multinomial.
 
+```{r Probabilidad}
 
-Mujer de 25 años que elige Naruto (por cada capítulo): V = \alpha_{Naruto} + \beta_{combate} * NescenasCombate del cap + \beta_{emocionantes} * NescenasEmocionantes + .... + \gamma_{EdadNaruto} * edad (o sea, 25) + \gamma_{MujerNaruto} * 1 (porque es mujer). Preguntar si se puede hacer por un capitulo o debe ser a nivel general.
+tablaprob = AnimeWide[-c(1,3,4,12,13,21,22,30,31,39)]
+tablaprob = tablaprob[1:12,] #se obtiene tabla que contiene datos para cada capítulo
+
+coeficientes <- coef(modelo2_logit) #se obtienen coeficientes del modelo logit
+
+#se crean vectores de largo 12 para guardar utilidades y probabilidades
+UtilidadNaruto = c(1:12)
+UtilidadHunter = c(1:12)
+UtilidadDragon = c(1:12)
+UtilidadHero = c(1:12)
+prob = c(1:12)
+
+#se calculan utilidades por capitulo para cada anime, para mujer de 25 años.
+#se calcula probabilidad de que mujer de 25 años escoja Naruto, por capítulo
+for (i in c(1:12)) {
+  UtilidadNaruto[i] <- coeficientes[2] + coeficientes[4]*tablaprob$NEscenasCombate.3[i] + 
+    coeficientes[5]*tablaprob$NescenasEmocionantes.3[i] + coeficientes[6]*tablaprob$CalidadAnimacion.3[i] + 
+      coeficientes[8]*25 + coeficientes[11]*1
+
+  UtilidadHunter[i] <- coeficientes[4]*tablaprob$NEscenasCombate.1[i] + 
+    coeficientes[5]*tablaprob$NescenasEmocionantes.1[i] + coeficientes[6]*tablaprob$CalidadAnimacion.1[i]
+
+  UtilidadDragon[i] <- coeficientes[1] + coeficientes[4]*tablaprob$NEscenasCombate.2[i] + 
+    coeficientes[5]*tablaprob$NescenasEmocionantes.2[i] + coeficientes[6]*tablaprob$CalidadAnimacion.2[i] + 
+      coeficientes[7]*25 + coeficientes[10]*1
+
+  UtilidadHero[i] <- coeficientes[3] + coeficientes[4]*tablaprob$NEscenasCombate.4[i] + 
+   coeficientes[5]*tablaprob$NescenasEmocionantes.4[i] + coeficientes[6]*tablaprob$CalidadAnimacion.4[i] + 
+      coeficientes[9]*25 + coeficientes[12]*1
+
+  prob[i] <- exp(UtilidadNaruto[i])/(exp(UtilidadNaruto[i]) + exp(UtilidadHunter[i]) + exp(UtilidadDragon[i]) + 
+                                       exp(UtilidadHero[i]))
+}
+
+mult = 1 #variable auxiliar
+
+#se obtiene probabilidad de que mujer de 25 años elija Naruto siempre
+for (i in c(1:12)) {
+  mult = mult*prob[i]
+}
+
+print(str_c("La probabilidad de que una mujer experta de 25 años elija el anime Naruto en un capítulo es, en promedio, de ", toString(sum(prob)/12), ".")) #se obtiene promedio simple de probabilidades por capítulo
+
+print(str_c("La probabilidad de que esta mujer elija el anime Naruto en todos los capítulos es de ", toString(mult), ".")) #se muestra probabilidad de que mujer de 25 años elija Naruto siempre
+
+```
+Como se puede observar, la probabilidad de que una mujer de 25 años escoja _Naruto_ en alguno de los capítulos es bastante baja. Es más, es improbable que esta mujer escoja en todos los capítulos el anime _Naruto_, pues la probabilidad asociada es prácticamente nula (aunque estadísticamente no es imposible).
+
+Como recomendación, se sugiere que si el grupo objetivo del canal televisivo son las mujeres de 25 años, no emitan la serie de anime _Naruto_.
 
 
 #### Pregunta 3
@@ -415,7 +463,7 @@ Mujer de 25 años que elige Naruto (por cada capítulo): V = \alpha_{Naruto} + \
 
 Finalmente, y considerando todos los modelos obtenidos en la pregunta anterior y el EDA, se decide que las variables más importantes del modelo serían el numero de escenas de combate, el número de escenas emocionantes, la calidad de la animación y si es o no mujer.
 
-```{r P3_pr2}
+```{r Probit}
 modelo_probit<-mlogit(Eleccion ~  NEscenasCombate + NescenasEmocionantes + CalidadAnimacion | Mujer | 0, data = myftrain, probit = TRUE, print.level=1) 
 
 summary(modelo_probit)
