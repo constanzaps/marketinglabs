@@ -102,9 +102,11 @@ ggplot(wine, aes(x=Type,y=Ash,fill=Type)) +
 ```
 ```{r}
 ggplot(wine, aes(Alcalinity, fill=Type)) + 
-  geom_histogram(binwidth=1,alpha=0.8) +
+  geom_histogram(binwidth=1,alpha=0.8, position = "identity") + 
   labs(fill="Tipo", x="Grados de alcohol", y="Número de vinos")+ggtitle("Frecuencia de Alcalinidad por tipo de vino")
 ```
+
+
 ```{r}
 ggplot(wine, aes(x=Type,y=Magnesium,fill=Type)) + 
   geom_boxplot(alpha=0.8) +
@@ -145,6 +147,7 @@ ggplot(wine, aes(x=Type,y=Dilution,fill=Type)) +
   geom_boxplot(alpha=0.8) +
   labs(fill="Tipo", x="Tipo de vino", y="Hue")+ggtitle("Boxplot de Hue por tipo de vino")+guides(fill=FALSE)
 ```
+
 ```{r}
 ggplot(wine, aes(x=Type,y=Proline,fill=Type)) + 
   geom_boxplot(alpha=0.8) +
@@ -267,30 +270,120 @@ $$F1_{score}=\frac{2⋅Recall⋅Precision}{Recall+Presicion}$$
 ## Preguntas
 
 ##### Pregunta 1
+Seleccione 3 variables del dataset para generar las predicciones y argumente por qué serían buenas variables para predecir el tipo de vino. Puede realizar un EDA o basarse en los gráficos ya incluidos.
 
-```{r p1}
-# Seleccione 3 variables del dataset para generar las predicciones y argumente por qué serían buenas variables para predecir el tipo de vino. Puede realizar un EDA o basarse en los gráficos ya incluidos.
-# Determine 2 métricas para comparar los modelos, justifique su elección.
-# Si se viera en la obligación de NO agregar ciertas variables del dataset, comente sobre cuál o cuáles serían apoyándose en un EDA o los gráficos ya incluídos (Mínimo una variable)
+Determine 2 métricas para comparar los modelos, justifique su elección.
+Si se viera en la obligación de NO agregar ciertas variables del dataset, comente sobre cuál o cuáles serían apoyándose en un EDA o los gráficos ya incluídos (Mínimo una variable)
+
+
+*R:* Se escogen las variables Alcohol, Flavanoids y Proline, debido a que las primeras dos diferencian claramente los tres tipos de vinos, y la tercera variable permite diferenciar claramente al tipo 1 del resto. Esto se observa en los siguientes boxplot de las variables (obtenidos del EDA).
+
+
+```{r, fig.width=10, fig.heigth=6}
+library(ggpubr)
+g1 <- ggplot(wine, aes(x=Type,y=Proline,fill=Type)) + 
+  geom_boxplot(alpha=0.8) +
+  labs(fill="Tipo", x="Tipo de vino", y="Proline")+ggtitle("Boxplot de \n Proline por tipo de vino")+guides(fill=FALSE)
+
+g2 <- ggplot(wine, aes(x=Type,y=Flavanoids,fill=Type)) + 
+  geom_boxplot(alpha=0.8) +
+  labs(fill="Tipo", x="Tipo de vino", y="Flavanoids")+ggtitle("Boxplot de \n Flavanoids por tipo de vino ")+guides(fill=FALSE)
+
+g3 <- ggplot(wine, aes(x=Type,y=Alcohol,fill=Type)) + 
+  geom_boxplot(alpha=0.8) +
+  labs(fill="Tipo", x="Tipo de vino", y="Grado Alcohólico")+ggtitle("Boxplot de \n niveles de alcohol por tipo de vino")+guides(fill=FALSE)
+
+ggarrange(g1,g2,g3, ncol=3)
 ```
 
+Respecto a las métricas, debido a que no se sabe cual es el peso que tiene un falso positivo o un falso negativo en la industria de los vinos, se decide usar las métricas más generales, que aumentan la cantidad de predichos correctamente, estas son Accurracy y F1-score (que mezcla la Precision y el Recall).
+
+Si queremos quitar variables, se considera que las que menos útiles para clasificar con Ash y Magnesium, pues son las que menos sirven para diferenciar los tipos de vinos entre sí, superponiendose valores para los 3 tipos de vinos. Esto se puede observar en los siguientes gráficos:
+
+```{r, fig.width=7, fig.heigth=4}
+g1 <- ggplot(wine, aes(x=Type,y=Magnesium,fill=Type)) + 
+  geom_boxplot(alpha=0.8) +
+  labs(fill="Tipo", x="Tipo de vino", y="Magnesium")+ggtitle("Boxplot de Magnesium \n por tipo de vino")+guides(fill=FALSE)
+
+g2 <- ggplot(wine, aes(x=Type,y=Ash,fill=Type)) + 
+  geom_boxplot(alpha=0.8) +
+  labs(fill="Tipo", x="Tipo de vino", y="Phenols")+ggtitle("Boxplot de Ash \n por tipo de vino")+guides(fill=FALSE)
+
+ggarrange(g1,g2, ncol=2)
+```
 
 ##### Pregunta 2
+Corra 2 modelos de clasificación con las variables seleccionadas anteriormente para predecir el tipo de vino.
+Cálcule para cada modelo las metricas seleccionadas para el set de testeo, además muestre la matriz de confusión.
+
+Comente sobre los resultados, ¿Los modelos poseen capacidad de generalización? ¿se observa overfitting o underfitting?
+
+
+
+*R: * Se pueden ver los modelos y sus matrices de confusión en el siguiente código:
 
 ```{r p2}
-# Corra 2 modelos de clasificación con las variables seleccionadas anteriormente para predecir el tipo de vino.
-# Cálcule para cada modelo las metricas seleccionadas para el set de testeo, además muestre la matriz de confusión.
-# Comente sobre los resultados, ¿Los modelos poseen capacidad de generalización? ¿se observa overfitting o underfitting?
+train.rf <- train(Type ~ Proline + Flavanoids + Alcohol,data=trainwine, method="rf",
+                   trControl  = trainControl("cv",number=5,classProbs=TRUE, summaryFunction=multiClassSummary),
+                   preProcess = c("center","scale"),
+                   tuneLength = 6,
+                   metric= 'logLoss')
+
+print(train.rf)
+
+train.rf$results
 
 
+test.rf<-predict(train.rf,newdata=testwine)
+confusionMatrix(as.factor(test.rf),as.factor(testwine$Type))
+
+Metrica=c('Precision','Recall','F1_Score', 'Accuracy')
+Valores=c(Precision(testwine$Type,test.rf),Recall(testwine$Type,test.rf),F1_Score(testwine$Type,test.rf),Accuracy(testwine$Type,test.rf))
+rf=data.frame(Metrica,Valores)
+#print(rf)
+head(rf)
 ```
+
+
+ 
+
+
+```{r p2.svm}
+train.svm <- train( Type ~ Proline + Flavanoids + Alcohol,data=trainwine, method="svmLinear2",
+                   trControl  = trainControl("cv",number=5,classProbs=TRUE, summaryFunction=multiClassSummary),
+                   preProcess = c("center","scale"),
+                   tuneLength = 6,
+                   metric= 'logLoss')
+
+print(train.svm)
+
+train.svm$results
+
+
+test.svm<-predict(train.svm,newdata=testwine)
+confusionMatrix(as.factor(test.svm),as.factor(testwine$Type))
+
+Metrica=c('Precision','Recall','F1_Score', 'Accuracy')
+Valores=c(Precision(testwine$Type,test.svm),Recall(testwine$Type,test.svm),F1_Score(testwine$Type,test.svm),Accuracy(testwine$Type,test.svm))
+svm=data.frame(Metrica,Valores)
+head(svm)
+```
+
+Respecto a los resultados, se puede observar que el modelo de Random Forest tuvo un accuracy del 82%, y su F1-score fue del 93%. Para el modelo de SVM, el accuracy fue de 85%, y el F1-score fue de 95%.
+
+Respecto al underfitting, este no está presente pues la predicción es bastante buena para ambos modelos. Respecto al overfitting, para combrobarlo se puede intentar predecir la data de entrenamiento, como se ve en el siguiente código: 
+
+```{r}
+test.svm1<-predict(train.svm,newdata=trainwine)
+confusionMatrix(as.factor(test.svm1),as.factor(trainwine$Type))
+```
+
+Si el modelo estuviese muy sobreajustado, predeciría sobre esta data perfectamente, sin errores. Sin embargo se puede observar que, por ejemplo el accuracy es de 94%, con lo cual puede estar levemente sobreajustado, pero aún así se puede generalizar con buenas métricas como se observa con los datos de testeo.
+
 
 ##### Pregunta 3
 
+Compare los modelos a través de métricas presentadas en el laboratorio. ¿Con que modelo se quedaría?
 
-```{r p3}
-# Compare los modelos a través de métricas presentadas en el laboratorio. ¿Con que modelo se quedaría? 
-
-
-```
+*R: * Para ambas métricas los resultados fueron mejores en el modelo de SVM, por lo cual se puede decir que para estos datos este modelo es el que entrega una mejor clasificación.
 
